@@ -1,0 +1,114 @@
+/* Container for the dashboard */
+
+.sidebar-open .dashboard-container1 {
+    margin-left: var(--sidebar-width); /* Adjust based on your sidebar width */
+  }
+  .dashboard-container1 {
+    width: 100%;
+  
+   
+  
+    max-width: 1400px;
+    margin: 10px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  
+  
+  /* Main content area */
+  /* .dashboard-content {
+    flex: 1;
+    padding: 10px;
+    position: relative;
+  } */
+  
+  /* Header styling */
+  .dashboard-content h2 {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 24px;
+    
+    margin-top: 0;
+  }
+  
+  .subheading {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    margin-top: auto;
+  }
+  
+  
+  
+  .add-user-form {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    width: auto;
+    
+  }
+  
+  .form-group label {
+    display: block;
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  
+  .form-left, .form-right {
+    width: 45%;
+  }
+  
+  .button-group {
+    display: flex;
+    justify-content: right;
+  }
+  
+  .btn {
+    padding: 12px 24px;
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    border-radius: 5px;
+    margin: 0 10px;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .btn.cancel {
+    background-color: #d0d0d0;
+    color: #333;
+  }
+  
+  .btn.add-employee {
+    background-color: #164DC3;
+    color: white;
+  }
+  .opt{
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  .action-button:hover {
+    background: linear-gradient(187.36deg, #0e3799 5.38%, #175cff 93.96%);
+  }
+  
+  
