@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import UserHeader from '../../UserDashboard/UserHeader';
 import UserSidebar from '../../UserDashboard/UserSidebar';
 import { useUser } from '../../Auth/UserContext';
+
+import { FaSearch, FaDownload, FaUpload, FaPlus, FaEdit, FaTrash, FaCopy } from 'react-icons/fa';
 import "../Availability/Booking.css"
 function Booking() {
 

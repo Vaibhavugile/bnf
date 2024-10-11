@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import logo1 from '../../assets/screenshot-20240801-at-125204-pmremovebgpreview-1@2x.png';
+import logo1 from '../../assets/Bore.jpg';
 import profileIcon from '../../assets/Profile.png';
-import menuImage from '../../assets/Menu.png';
 import './UserHeader.css';
+import { FaBars } from 'react-icons/fa';
+
 
 const UserHeader = ({ onMenuClick, isSidebarOpen }) => {
   const navigate = useNavigate(); // Use useNavigate for navigation
@@ -16,7 +17,7 @@ const UserHeader = ({ onMenuClick, isSidebarOpen }) => {
   return (
     <header className={`header2 ${isSidebarOpen ? 'sidebar-open' : ''} ${shouldHideHeader ? 'hidden' : ''}`}>
       <button className="menu-button" onClick={onMenuClick}>
-        <img className='menu-image' src={menuImage} alt="Menu" />
+        <FaBars/>
       </button>
       <div className="header2-logo">
         <img src={logo1} alt="Logo" />
