@@ -304,6 +304,11 @@ useEffect(() => {
   const addProductForm = () => {
     setProducts([...products, {  pickupDate: firstProductDates.pickupDate, returnDate: firstProductDates.returnDate,productCode: '', quantity: '', availableQuantity: null, errorMessage: '', productImageUrl: '' }]);
   };
+  const removeProductForm = (index) => {
+    const updatedProducts = products.filter((_, i) => i !== index);
+    setProducts(updatedProducts);
+  };
+
 
 
 
@@ -684,6 +689,20 @@ useEffect(() => {
     
   };
 
+  const handleDeleteProduct = (index) => {
+    // Create a copy of the products array without the product at the specified index
+    const updatedProducts = receipt.products.filter((_, productIndex) => productIndex !== index);
+  
+    // Update the receipt object with the new product list
+    setReceipt((prevReceipt) => ({
+      ...prevReceipt,
+      products: updatedProducts,
+    }));
+    
+    // Optionally, update the total price and other related calculations here
+  };
+  
+
   return (
     <div className="booking-container1">
       <UserHeader onMenuClick={toggleSidebar} />
@@ -779,8 +798,15 @@ useEffect(() => {
             )}
           </div>
          
-          
+          {products.length > 1 && index > 0 && (
+                <button type="button" className='cancel-button' onClick={() => removeProductForm(index)}>Cancel</button>
+              )}
+
           <button type="button" className='checkavailability' onClick={() => checkAvailability(index)}>Check Availability</button>
+           
+              
+         
+
           <div className="available-quantity-display">
             {product.errorMessage ? (
               <span style={{ color: 'red' }}>{product.errorMessage}</span>
@@ -798,7 +824,8 @@ useEffect(() => {
           
         </div>
       ))}
-      <button className='checkavailability11' onClick={addProductForm}>Add Product</button>
+      <button className='checkavailability11' onClick={addProductForm}>Add New Product</button>
+      
       
      </div>
       )}
@@ -898,6 +925,7 @@ useEffect(() => {
                 <div className="receipt-column">
                   <strong>Grand Total</strong>
                 </div>
+                
               </div>
 
               {/* Now map over products and display only the values */}
@@ -916,6 +944,7 @@ useEffect(() => {
                   
                   <div className="receipt-column">₹{product.totalPrice}</div>
                   <div className="receipt-column">₹{product.grandTotal}</div>
+                  
                 </div>
               ))}
               <div className="receipt-row">

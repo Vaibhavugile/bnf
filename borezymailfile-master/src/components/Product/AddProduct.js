@@ -151,7 +151,7 @@ function AddProduct() {
       setCustomFieldValues({});
       setSelectedSize(''); // Reset size
       setSelectedGender(''); // Reset gender
-      setPriceType('daily')
+      setPriceType('')
 
     } catch (error) {
       console.error('Error adding product: ', error);
