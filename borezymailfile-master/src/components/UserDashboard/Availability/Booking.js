@@ -689,17 +689,30 @@ useEffect(() => {
     
   };
 
-  const handleDeleteProduct = (index) => {
-    // Create a copy of the products array without the product at the specified index
-    const updatedProducts = receipt.products.filter((_, productIndex) => productIndex !== index);
+  // const handleDeleteProduct = (index) => {
+  //   // Create a copy of the products array without the product at the specified index
+  //   const updatedProducts = receipt.products.filter((_, productIndex) => productIndex !== index);
   
-    // Update the receipt object with the new product list
+  //   // Update the receipt object with the new product list
+  //   setReceipt((prevReceipt) => ({
+  //     ...prevReceipt,
+  //     products: updatedProducts,
+  //   }));
+    
+  //   // Optionally, update the total price and other related calculations here
+  // };
+
+  const handleDeleteProduct = (productCode) => {
+    // Update products state by filtering out the deleted product
+    setProducts((prevProducts) => 
+      prevProducts.filter((product) => product.productCode !== productCode)
+    );
+  
+    // Update receipt state if you have a separate receipt state
     setReceipt((prevReceipt) => ({
       ...prevReceipt,
-      products: updatedProducts,
+      products: prevReceipt.products.filter((product) => product.productCode !== productCode)
     }));
-    
-    // Optionally, update the total price and other related calculations here
   };
   
 
@@ -799,7 +812,7 @@ useEffect(() => {
           </div>
          
           {products.length > 1 && index > 0 && (
-                <button type="button" className='cancel-button' onClick={() => removeProductForm(index)}>Cancel</button>
+                <FaTrash type="button" className='cancel-button' onClick={() => removeProductForm(index)}/>
               )}
 
           <button type="button" className='checkavailability' onClick={() => checkAvailability(index)}>Check Availability</button>
@@ -925,6 +938,9 @@ useEffect(() => {
                 <div className="receipt-column">
                   <strong>Grand Total</strong>
                 </div>
+                <div className="receipt-column">
+                  <strong>Action</strong>
+                </div>
                 
               </div>
 
@@ -944,6 +960,11 @@ useEffect(() => {
                   
                   <div className="receipt-column">₹{product.totalPrice}</div>
                   <div className="receipt-column">₹{product.grandTotal}</div>
+                  <div className="receipt-column">
+                  <FaTrash onClick={() => handleDeleteProduct(product.productCode)}
+                  style={{ cursor: 'pointer', color: 'red' }} 
+                  /> {/* Delete icon */}
+                  </div>
                   
                 </div>
               ))}
