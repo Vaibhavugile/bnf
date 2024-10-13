@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy,updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import UserHeader from '../../UserDashboard/UserHeader';
@@ -7,12 +7,12 @@ import UserSidebar from '../../UserDashboard/UserSidebar';
 import { useUser } from '../../Auth/UserContext';
 import search from '../../../assets/Search.png';
 import { FaSearch, FaDownload, FaUpload, FaPlus, FaEdit, FaTrash, FaCopy } from 'react-icons/fa';
-// import BookingDetailSidebar from './BookingDetailSidebar'; // Ensure this component exists
 import './Availability.css'; // Create CSS for styling
-
+import RightSidebar from './BRightsidebar';
 const BookingDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedReceiptNumber, setSelectedReceiptNumber] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -24,15 +24,23 @@ const BookingDashboard = () => {
   const navigate = useNavigate();
   const [stageFilter, setStageFilter] = useState('all'); // New state for filtering by stage
   const { userData } = useUser();
-  
-  // Assuming you have userData defined somewhere in your context or props
-   // Replace this with actual user data
 
+
+  const handleBookingClick = (booking) => {
+    setSelectedReceiptNumber(booking.receiptNumber); // Set the selected receipt number
+    setRightSidebarOpen(true);
+  };
+
+  const closeRightSidebar = () => {
+    setRightSidebarOpen(false);
+    setSelectedReceiptNumber(null); // Reset when sidebar is closed
+  };
+
+  
   useEffect(() => {
     const fetchAllBookingsWithUserDetails = async () => {
       setLoading(true); // Start loading
       try {
-        // Query products based on the branch code
         const q = query(
           collection(db, 'products'),
           where('branchCode', '==', userData.branchCode)
@@ -40,7 +48,6 @@ const BookingDashboard = () => {
         const productsSnapshot = await getDocs(q);
         let allBookings = [];
 
-        // Loop through products and get related bookings
         for (const productDoc of productsSnapshot.docs) {
           const productCode = productDoc.data().productCode;
           const bookingsRef = collection(productDoc.ref, 'bookings');
@@ -66,27 +73,38 @@ const BookingDashboard = () => {
 
             allBookings.push({
               productCode,
-              bookingId, // The booking ID
-              receiptNumber, // New field for receipt number
+              bookingId,
+              receiptNumber,
               username: userDetails.name,
               contactNo: userDetails.contact,
               email: userDetails.email,
               pickupDate: pickupDate.toDate(),
               returnDate: returnDate.toDate(),
               quantity: parseInt(quantity, 10),
-              price, // Include price
-              deposit, // Include deposit
-              priceType, // Include price type
-              minimumRentalPeriod, // Include minimum rental period
-              discountedGrandTotal, // Include discounted grand total
-              extraRent, // Include extra rent
+              price,
+              deposit,
+              priceType,
+              minimumRentalPeriod,
+              discountedGrandTotal,
+              extraRent,
               stage: userDetails.stage,
             });
           });
         }
 
-        // Set bookings without filtering for unique contacts
-        setBookings(allBookings); // Store all bookings
+        // Group bookings by receiptNumber
+        const groupedBookings = allBookings.reduce((acc, booking) => {
+          const { receiptNumber } = booking;
+          if (!acc[receiptNumber]) {
+            acc[receiptNumber] = { ...booking, productCodes: [booking.productCode] };
+          } else {
+            acc[receiptNumber].productCodes.push(booking.productCode);
+          }
+          return acc;
+        }, {});
+
+        // Convert grouped bookings object to array
+        setBookings(Object.values(groupedBookings));
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -110,55 +128,45 @@ const BookingDashboard = () => {
   const handleAddBooking = () => {
     navigate('/addbooking'); // Navigate to an add booking page
   };
+
   const handleStageChange = async (productCode, bookingId, newStage) => {
-  console.log("Stage change initiated with:");
-  console.log("Product Code:", productCode);
-  console.log("Booking ID:", bookingId);
-  console.log("New Stage:", newStage);
+    console.log("Stage change initiated with:");
+    console.log("Product Code:", productCode);
+    console.log("Booking ID:", bookingId);
+    console.log("New Stage:", newStage);
 
-  if (!newStage) {
-    console.error('Invalid stage selected:', newStage);
-    return;
-  }
-
-  if (!productCode || !bookingId) {
-    console.error('Missing productCode or bookingId:', { productCode, bookingId });
-    return;
-  }
-
-  try {
-    // Query for the document where bookingId matches
-    const bookingsRef = collection(db, `products/${productCode}/bookings`);
-    const q = query(bookingsRef, where("bookingId", "==", bookingId));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.error(`No booking found with bookingId: ${bookingId}`);
+    if (!newStage) {
+      console.error('Invalid stage selected:', newStage);
       return;
     }
 
-    // Assume bookingId is unique, so take the first matching document
-    const bookingDocRef = querySnapshot.docs[0].ref;
+    if (!productCode || !bookingId) {
+      console.error('Missing productCode or bookingId:', { productCode, bookingId });
+      return;
+    }
 
-    // Update the stage field in Firestore
-    await updateDoc(bookingDocRef, { 'userDetails.stage': newStage });
-    console.log('Booking stage updated successfully!');
+    try {
+      const bookingsRef = collection(db, `products/${productCode}/bookings`);
+      const q = query(bookingsRef, where("bookingId", "==", bookingId));
+      const querySnapshot = await getDocs(q);
 
-  } catch (error) {
-    console.error('Error updating booking stage:', error);
-  }
-};
+      if (querySnapshot.empty) {
+        console.error(`No booking found with bookingId: ${bookingId}`);
+        return;
+      }
+
+      const bookingDocRef = querySnapshot.docs[0].ref;
+      await updateDoc(bookingDocRef, { 'userDetails.stage': newStage });
+      console.log('Booking stage updated successfully!');
+
+    } catch (error) {
+      console.error('Error updating booking stage:', error);
+    }
+  };
 
   
 
-  const handleBookingClick = (booking) => {
-    setSelectedBooking(booking);
-    setRightSidebarOpen(true);
-  };
 
-  const closeRightSidebar = () => {
-    setRightSidebarOpen(false);
-  };
   const handleSearch = () => {
     const lowerCaseQuery = searchQuery.toLowerCase();
     if (lowerCaseQuery === '') {
@@ -232,7 +240,6 @@ const BookingDashboard = () => {
     String(booking.bookingId).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  
   return (
     <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
       <UserSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
@@ -250,7 +257,6 @@ const BookingDashboard = () => {
           <button onClick={() => setStageFilter('returnPending')}>Return Pending</button>
           <button onClick={() => setStageFilter('cancelled')}>Cancelled</button>
         </div>
-        
 
         <div className="toolbar-container">
           <div className="search-bar-container9">
@@ -258,107 +264,107 @@ const BookingDashboard = () => {
             <select
               value={searchField}
               onChange={(e) => setSearchField(e.target.value)}
-              className="search-dropdown9"
+              className="search-field"
             >
               <option value="bookingId">Booking ID</option>
               <option value="receiptNumber">Receipt Number</option>
-              <option value="date">Date</option>
-              <option value="status">Status</option>
+              <option value="productCode">Product Code</option>
+              <option value="username">Username</option>
+              <option value="contactNo">Contact No</option>
             </select>
             <input
               type="text"
-              placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+              placeholder="Search..."
             />
+            <button onClick={handleSearch} className="search-button">Search</button>
           </div>
-          <div className="action-buttons">
-            <label className="export-button" onClick={exportToCSV}>
-              <FaDownload />
-              Export
-            </label>
-            <label htmlFor="import" className="import-button">
-              <FaUpload />
-              Import
+          <div className="toolbar-actions">
+            <button className="action-button" onClick={exportToCSV}>
+              <FaDownload /> Export
+            </button>
+            <label htmlFor="file-upload" className="action-button">
+              <FaUpload /> Import
               <input
+                id="file-upload"
                 type="file"
-                id="import"
-                accept=".csv"
                 onChange={handleImport}
                 style={{ display: 'none' }}
               />
             </label>
-            <label className="add-product-button" onClick={handleAddBooking}>
-              <FaPlus />
-              Add Booking
-            </label>
+            <button className="action-button" onClick={handleAddBooking}>
+              <FaPlus /> Add Booking
+            </button>
           </div>
         </div>
-        <div className="table-container">
-          {loading ? (
-            <p>Loading bookings...</p>
-          ) : filteredBookings.length > 0 ? (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Booking ID</th>
-                  <th>Receipt Number</th>
-                  <th>Product Code</th>
-                  <th>Username</th>
-                  <th>Contact No</th>
-                  <th>Email</th>
-                  <th>Pickup Date</th>
-                  <th>Return Date</th>
-                  <th>Stage</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                  <th>Deposit</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.bookingId} onClick={() => handleBookingClick(booking)}>
-                    <td>{booking.bookingId}</td>
-                    <td>{booking.receiptNumber}</td> {/* Displaying receipt number */}
-                    <td>{booking.productCode}</td>
-                    <td>{booking.username}</td>
-                    <td>{booking.contactNo}</td>
-                    <td>{booking.email}</td>
-                    <td>{new Date(booking.pickupDate).toLocaleDateString()}</td>
-                    <td>{new Date(booking.returnDate).toLocaleDateString()}</td>
-                    <td>
+
+        {loading ? (
+          <p>Loading bookings...</p>
+        ) : (
+          <div className="booking-list">
+            {filteredBookings.length > 0 ? (
+              <table className="booking-table">
+                <thead>
+                  <tr>
+                    <th>Receipt Number</th>
+                    <th>Product Codes</th>
+                    <th>Username</th>
+                    <th>Contact No</th>
+                    <th>Email</th>
+                    <th>Pickup Date</th>
+                    <th>Return Date</th>
+                    <th>Quantity</th>
+                    <th>Stage</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBookings.map((booking) => (
+                     <tr key={booking.bookingId} onClick={() => handleBookingClick(booking)}>
+                      <td>{booking.receiptNumber}</td>
+                      <td>{booking.productCodes.join(', ')}</td>
+                      <td>{booking.username}</td>
+                      <td>{booking.contactNo}</td>
+                      <td>{booking.email}</td>
+                      <td>{booking.pickupDate.toLocaleString()}</td>
+                      <td>{booking.returnDate.toLocaleString()}</td>
+                      <td>{booking.quantity}</td>
+                      <td>
                         <select
                           value={booking.stage}
                           onChange={(e) => handleStageChange(booking.productCode, booking.bookingId, e.target.value)}
                         >
                           <option value="booking">Booking</option>
-                          <option value="pickup">Pickup</option>
-                          <option value="pickup pending">Pickup Pending</option>
+                          <option value="pickup">Pick Up</option>
+                          <option value="pickupPending">Pickup Pending</option>
                           <option value="return">Return</option>
                           <option value="returnPending">Return Pending</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </td>
-                    <td>{booking.quantity}</td>
-                    <td>{booking.price}</td> {/* Displaying price */}
-                    <td>{booking.deposit}</td> {/* Displaying deposit */}
-                    <td>
-                      <div className="action-buttons">
-                        <label onClick={() => handleEdit(booking.id)}><FaEdit style={{ color: '#757575', cursor: 'pointer' }} /></label>
-                        <label onClick={() => handleDelete(booking.id)}><FaTrash style={{ color: '#757575', cursor: 'pointer' }} /></label>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No bookings found</p>
-          )}
-        </div>
-       
+                      <td>
+                        <button className="delete-button" onClick={() => handleDelete(booking.bookingId)}>
+                          <FaTrash />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>No bookings found.</p>
+            )}
+          </div>
+        )}
       </div>
+      <RightSidebar 
+        isOpen={rightSidebarOpen} 
+        booking={bookings.find(booking => booking.receiptNumber === selectedReceiptNumber)}
+        onClose={closeRightSidebar} 
+          // Pass the selected receipt number
+      />
     </div>
   );
 };

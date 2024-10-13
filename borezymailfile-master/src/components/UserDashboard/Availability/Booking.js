@@ -65,7 +65,7 @@ useEffect(() => {
 
    // Number of days between pickup and return
   const [products, setProducts] = useState([
-    {  pickupDate: '', returnDate: '', productCode: '',  quantity: '', availableQuantity: null, errorMessage: '',price:'',deposit:'',},
+    {  pickupDate: '', returnDate: '', productCode: '',  quantity: '', availableQuantity: null, errorMessage: '',price:'',deposit:'',productName:'',},
   ]);
   const navigate = useNavigate();
   const toggleSidebar = () => {
@@ -97,6 +97,7 @@ useEffect(() => {
           const totalQuantity = productData.quantity || 0;
           const minimumRentalPeriod = productData.minimumRentalPeriod || 1;
           const extraRent = productData.extraRent || 0;
+          const productName = productData.productName || 'N/A';
   
           let imageUrl = null;
           if (imagePath) {
@@ -124,6 +125,7 @@ useEffect(() => {
                 priceType,
                 minimumRentalPeriod,
                 extraRent,
+                productName,
               };
             }
             return newProducts;
@@ -155,24 +157,52 @@ useEffect(() => {
     // Format the receipt number (e.g., add leading zeros)
     return `REC-${String(receiptNumber).padStart(6, '0')}`; // REC-000001
   };
+
+  function getCurrentDate() {
+    const today = new Date();
+    // Format date to YYYY-MM-DDTHH:MM (datetime-local format)
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero to month
+    const day = today.getDate().toString().padStart(2, '0'); // Add leading zero to day
+    const hours = today.getHours().toString().padStart(2, '0'); // Add leading zero to hours
+    const minutes = today.getMinutes().toString().padStart(2, '0'); // Add leading zero to minutes
+  
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
   
   
   
 
   const handleFirstProductDateChange = (e, field, index) => {
     const newProducts = [...products];
-    newProducts[index][field] = e.target.value;
-    
-    // If first product, update the dates
+    const value = e.target.value;
+
+    // Ensure pickupDate is not earlier than today
+    if (field === 'pickupDate') {
+        const today = new Date();
+        const selectedDate = new Date(value);
+
+        // Check if selected pickupDate is in the past
+        if (selectedDate < today) {
+            alert('Pickup date cannot be in the past.');
+            return;
+        }
+    }
+
+    // Update the field value for the selected product
+    newProducts[index][field] = value;
+
+    // If first product, update the firstProductDates state
     if (index === 0) {
-      setFirstProductDates({
-        ...firstProductDates,
-        [field]: e.target.value
-      });
+        setFirstProductDates({
+            ...firstProductDates,
+            [field]: value
+        });
     }
 
     setProducts(newProducts);
-  };
+};
+
   
   // Function to handle product input changes
   const handleProductChange = (index, event) => {
@@ -302,7 +332,7 @@ useEffect(() => {
   };
 
   const addProductForm = () => {
-    setProducts([...products, {  pickupDate: firstProductDates.pickupDate, returnDate: firstProductDates.returnDate,productCode: '', quantity: '', availableQuantity: null, errorMessage: '', productImageUrl: '' }]);
+    setProducts([...products, {  pickupDate: firstProductDates.pickupDate, returnDate: firstProductDates.returnDate,productCode: '', quantity: '', availableQuantity: null, errorMessage: '', productImageUrl: '',productName:'', }]);
   };
   const removeProductForm = (index) => {
     const updatedProducts = products.filter((_, i) => i !== index);
@@ -406,7 +436,7 @@ useEffect(() => {
         }
   
         const productData = productDoc.data();
-        const { price, deposit,priceType,minimumRentalPeriod,extraRent } = productData;
+        const { price, deposit,priceType,minimumRentalPeriod,extraRent ,productName} = productData;
         const calculateTotalPrice = (price, deposit, priceType, quantity, pickupDate, returnDate, minimumRentalPeriod,extraRent) => {
           const pickupDateObj = new Date(pickupDate);
           const returnDateObj = new Date(returnDate);
@@ -485,6 +515,7 @@ useEffect(() => {
           price,
           deposit,
           totalCost: totalCost.totalPrice,
+          productName,
         });
   
         // Save booking details to Firestore
@@ -499,6 +530,7 @@ useEffect(() => {
           quantity: product.quantity,
           totalPrice: totalCost.totalPrice,
           grandTotal: totalCost.grandTotal,
+          productName,
         });
       }
   
@@ -739,6 +771,7 @@ useEffect(() => {
               name="pickupDate"
               value={product.pickupDate}
               onChange={e => handleFirstProductDateChange(e, 'pickupDate', index)}
+              min={getCurrentDate()}
               disabled={index > 0}
               required
              />
@@ -775,6 +808,17 @@ useEffect(() => {
               value={product.quantity}
               onChange={(e) => handleProductChange(index, e)}
               required
+            />
+          </div>
+          <div className="form-group1">
+            <label>Product Name</label>
+            <input
+              type="text"
+              name="productName"
+              value={product.productName}
+              readOnly
+              
+           
             />
           </div>
           <div className="date-row" style={{  width: '700px',display: 'flex'}}>
@@ -918,6 +962,10 @@ useEffect(() => {
                   <strong>Product Image</strong>
                 </div>
                 <div className="receipt-column">
+                  <strong>Product Name</strong>
+                </div>
+
+                <div className="receipt-column">
                   <strong>Product Code</strong>
                 </div>
                 <div className="receipt-column">
@@ -952,6 +1000,7 @@ useEffect(() => {
                       <img src={product.productImageUrl} alt="Product" style={{ width: '30px', height: '30px' }} />
                     )}
                   </div>
+                  <div className="receipt-column">{product.productName}</div>
                   <div className="receipt-column">{product.productCode}</div>
                   <div className="receipt-column">₹{product.deposit}</div>
                   <div className="receipt-column">₹{product.price}</div>
