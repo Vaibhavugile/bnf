@@ -23,18 +23,11 @@ const BRightSidebar = ({ isOpen, onClose, booking }) => {
           <p><strong>Discounted Grand Total:</strong> {booking.discountedGrandTotal}</p>
           <p><strong>Extra Rent:</strong> {booking.extraRent}</p>
           {/* Add more booking details here if needed */}
-          {booking.productCodes && booking.productCodes.length > 0 ? (
-            <div>
-              <h4>Product Codes:</h4>
-              <ul>
-                {booking.productCodes.map((code, index) => (
-                  <li key={index}>{code}</li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p>No product codes available.</p>
-          )}
+          {booking.products.map((product) => (
+                            <div key={product.productCode}>
+                                {product.productCode}: {product.quantity}:₹{product.price}:₹{product.deposit}
+                            </div>
+                            ))}
         </div>
       ) : (
         <p>No booking selected.</p>

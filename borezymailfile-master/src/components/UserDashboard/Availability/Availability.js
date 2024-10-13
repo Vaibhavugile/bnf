@@ -47,13 +47,13 @@ const BookingDashboard = () => {
         );
         const productsSnapshot = await getDocs(q);
         let allBookings = [];
-
+  
         for (const productDoc of productsSnapshot.docs) {
           const productCode = productDoc.data().productCode;
           const bookingsRef = collection(productDoc.ref, 'bookings');
           const bookingsQuery = query(bookingsRef, orderBy('pickupDate', 'asc'));
           const bookingsSnapshot = await getDocs(bookingsQuery);
-
+  
           bookingsSnapshot.forEach((doc) => {
             const bookingData = doc.data();
             const { 
@@ -70,9 +70,8 @@ const BookingDashboard = () => {
               discountedGrandTotal, 
               extraRent 
             } = bookingData;
-
+  
             allBookings.push({
-              productCode,
               bookingId,
               receiptNumber,
               username: userDetails.name,
@@ -80,29 +79,28 @@ const BookingDashboard = () => {
               email: userDetails.email,
               pickupDate: pickupDate.toDate(),
               returnDate: returnDate.toDate(),
-              quantity: parseInt(quantity, 10),
-              price,
-              deposit,
+              
               priceType,
               minimumRentalPeriod,
               discountedGrandTotal,
               extraRent,
               stage: userDetails.stage,
+              products: [{ productCode, quantity: parseInt(quantity, 10),price,deposit, },], // Store product codes with quantities
             });
           });
         }
-
+  
         // Group bookings by receiptNumber
         const groupedBookings = allBookings.reduce((acc, booking) => {
-          const { receiptNumber } = booking;
+          const { receiptNumber, products } = booking;
           if (!acc[receiptNumber]) {
-            acc[receiptNumber] = { ...booking, productCodes: [booking.productCode] };
+            acc[receiptNumber] = { ...booking, products: [...products] }; // Copy products array
           } else {
-            acc[receiptNumber].productCodes.push(booking.productCode);
+            acc[receiptNumber].products.push(...products); // Merge products arrays
           }
           return acc;
         }, {});
-
+  
         // Convert grouped bookings object to array
         setBookings(Object.values(groupedBookings));
       } catch (error) {
@@ -111,9 +109,10 @@ const BookingDashboard = () => {
         setLoading(false); // End loading
       }
     };
-
+  
     fetchAllBookingsWithUserDetails();
   }, [userData.branchCode]);
+  
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
@@ -239,6 +238,14 @@ const BookingDashboard = () => {
   const filteredBookings = bookings.filter((booking) =>
     String(booking.bookingId).toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Add a filter based on the stageFilter
+  const finalFilteredBookings = filteredBookings.filter((booking) => {
+    if (stageFilter === 'all') {
+      return true; // Include all bookings if "all" is selected
+    }
+    return booking.stage === stageFilter; // Match booking stage
+  });
 
   return (
     <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -250,7 +257,7 @@ const BookingDashboard = () => {
         </h2>
         <div className="filter-container">
           <button onClick={() => setStageFilter('all')}>All</button>
-          <button onClick={() => setStageFilter('booking')}>Booking </button>
+          <button onClick={() => setStageFilter('Booking')}>Booking </button>
           <button onClick={() => setStageFilter('pickup')}>Pick Up</button>
           <button onClick={() => setStageFilter('pickupPending')}>Pickup Pending</button>
           <button onClick={() => setStageFilter('return')}>Return</button>
@@ -304,7 +311,7 @@ const BookingDashboard = () => {
           <p>Loading bookings...</p>
         ) : (
           <div className="booking-list">
-            {filteredBookings.length > 0 ? (
+            {finalFilteredBookings.length > 0 ? (
               <table className="booking-table">
                 <thead>
                   <tr>
@@ -321,10 +328,16 @@ const BookingDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBookings.map((booking) => (
+                  {finalFilteredBookings.map((booking) => (
                      <tr key={booking.bookingId} onClick={() => handleBookingClick(booking)}>
                       <td>{booking.receiptNumber}</td>
-                      <td>{booking.productCodes.join(', ')}</td>
+                      <td>
+                            {booking.products.map((product) => (
+                            <div key={product.productCode}>
+                                {product.productCode}: {product.quantity}
+                            </div>
+                            ))}
+                        </td>
                       <td>{booking.username}</td>
                       <td>{booking.contactNo}</td>
                       <td>{booking.email}</td>
@@ -336,7 +349,7 @@ const BookingDashboard = () => {
                           value={booking.stage}
                           onChange={(e) => handleStageChange(booking.productCode, booking.bookingId, e.target.value)}
                         >
-                          <option value="booking">Booking</option>
+                          <option value="Booking">Booking</option>
                           <option value="pickup">Pick Up</option>
                           <option value="pickupPending">Pickup Pending</option>
                           <option value="return">Return</option>

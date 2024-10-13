@@ -943,7 +943,7 @@ useEffect(() => {
             required
           >
             <option value="Booking" >Booking</option>
-            <option value="Pickup">Pickup</option>
+            <option value="pickup">Pickup</option>
           </select>
         </div>
           <button type="submit" className='confirm-booking-button'>Confirm Booking</button>
