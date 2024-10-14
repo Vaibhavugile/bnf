@@ -969,14 +969,15 @@ useEffect(() => {
                   <strong>Product Code</strong>
                 </div>
                 <div className="receipt-column">
+                  <strong>Quantity</strong>
+                </div>
+                <div className="receipt-column">
                   <strong>Deposit</strong>
                 </div>
                 <div className="receipt-column">
                   <strong>Rent</strong>
                 </div>
-                <div className="receipt-column">
-                  <strong>Quantity</strong>
-                </div>
+               
                 
                
                 <div className="receipt-column">
@@ -1002,9 +1003,10 @@ useEffect(() => {
                   </div>
                   <div className="receipt-column">{product.productName}</div>
                   <div className="receipt-column">{product.productCode}</div>
+                  <div className="receipt-column">{product.quantity}</div>
                   <div className="receipt-column">₹{product.deposit}</div>
                   <div className="receipt-column">₹{product.price}</div>
-                  <div className="receipt-column">{product.quantity}</div>
+                  
                  
                   
                   <div className="receipt-column">₹{product.totalPrice}</div>

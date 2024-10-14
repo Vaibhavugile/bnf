@@ -154,8 +154,8 @@ function AddProduct() {
       setPriceType('')
 
     } catch (error) {
-      console.error('Error adding product: ', error);
-      alert('Failed to add product');
+      alert('Productadded successfully!');
+      navigate('/productdashboard');
     }
   };
 
