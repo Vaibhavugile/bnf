@@ -32,11 +32,12 @@ import Booking from './components/UserDashboard/Availability/Booking';
 import EditUser from './components/UserDashboard/EditUser';
 import ClientLeadsDashboard from './components/UserDashboard/Clienleads/CleadsDashboard';
 import ClientLeads from './components/UserDashboard/Clienleads/Cleads';
-import SingleComponent from './components/Profile/Profile';
 import EditProduct from './components/Product/EditProduct';
 import BookingDashboard from './components/UserDashboard/Availability/Availability';
 import ClientDashboard from './components/UserDashboard/Availability/ClientDetail';
 import Dashboard from './components/UserDashboard/Dashboard/Dashboard';
+import SingleComponent from './components/Profile/Profile';
+import Overview from './components/Profile/overview';
 const App = () => (
   <UserProvider>
   <Router>
@@ -81,11 +82,11 @@ const App = () => (
       <Route path="/" element={<Layout />}>
       <Route path="superadmin" element={<CreateSuperAdmin />} /> {/* Route for the LeadForm */}
       <Route path="profile" element={<SingleComponent/>} />
-      
+      <Route path="overview" element={<Overview/>} />
     </Route>
     </Routes>
   </Router>
   </UserProvider>
-);
+)
 
 export default App;

@@ -20,18 +20,22 @@ const Layout = () => {
         </div>
       </header>
       <div className='profile1'>
-        <nav>
-          <ul>
-            <li><NavLink to="/profile">Overview</NavLink></li>
-            {userData.role === 'Super Admin' ? (
-              <li><NavLink to="/superadmin">Super Admin</NavLink></li>
-            ) : (
-              <li><NavLink to="/usersidebar/users">Create Users</NavLink></li>
-            )}
-            <li><NavLink to="/transaction">Transaction</NavLink></li>
-            <li><NavLink to="/settings">Settings</NavLink></li>
-          </ul>
-        </nav>
+      <nav>
+  <ul>
+    {userData.role === 'Branch Manager' ? (
+      <li><NavLink to="/overview">Overview</NavLink></li>
+    ) : (
+      <li><NavLink to="/profile">Overview</NavLink></li>
+    )}
+    {userData.role === 'Super Admin' ? (
+      <li><NavLink to="/superadmin">Super Admin</NavLink></li>
+    ) : (
+      <li><NavLink to="/usersidebar/users">Create Users</NavLink></li>
+    )}
+    <li><NavLink to="/transaction">Transaction</NavLink></li>
+    <li><NavLink to="/settings">Settings</NavLink></li>
+  </ul>
+</nav>
       </div>
       <main>
         <Outlet /> {/* Render the nested route content here */}

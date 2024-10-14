@@ -13,8 +13,8 @@ import { fetchRealTimeDate } from '../../utils/fetchRealTimeDate';
 
 const Login = () => {
   const { setUserData } = useUser(); // Access setUserData from the context
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(localStorage.getItem('userEmail') ? JSON.parse(localStorage.getItem('userEmail')) : '');
+  const [password, setPassword] = useState(localStorage.getItem('userPassword') ? JSON.parse(localStorage.getItem('userPassword')) : '');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
@@ -42,6 +42,28 @@ const Login = () => {
     checkAuthToken();
   }, [setUserData, navigate]);
 
+  // Auto-fill email and password from storage
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+    const savedPassword = localStorage.getItem('userPassword') || sessionStorage.getItem('userPassword');
+    
+    if (savedEmail && savedPassword) {
+      setEmail(JSON.parse(savedEmail));
+      setPassword(JSON.parse(savedPassword));
+    }
+  }, []);
+
+  // Session timeout logic (e.g., 30 minutes)
+  useEffect(() => {
+    const sessionTimeout = setTimeout(() => {
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
+      navigate('/login'); // Redirect to login on session timeout
+    }, 30 * 60 * 1000); // 30 minutes timeout
+
+    return () => clearTimeout(sessionTimeout); // Cleanup on component unmount
+  }, [navigate]);
+
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
@@ -61,9 +83,11 @@ const Login = () => {
       if (rememberMe) {
         localStorage.setItem('authToken', token);
         localStorage.setItem('userEmail', JSON.stringify(email));
+        localStorage.setItem('userPassword', JSON.stringify(password)); // Save password
       } else {
         sessionStorage.setItem('authToken', token);
         sessionStorage.setItem('userEmail', JSON.stringify(email));
+        sessionStorage.setItem('userPassword', JSON.stringify(password)); // Save password
       }
 
       // Check if the user is a Super Admin
@@ -220,26 +244,29 @@ const Login = () => {
             <TextField
               label="Email ID"
               variant="outlined"
+              fullWidth
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              fullWidth
+              autoComplete="email"
             />
           </div>
+
           <div className="form-group">
             <TextField
               label="Password"
-              variant="outlined"
               type={showPassword ? 'text' : 'password'}
+              variant="outlined"
+              fullWidth
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              fullWidth
+              autoComplete="current-password"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={togglePasswordVisibility} edge="end" sx={{ background: 'transparent' }}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    <IconButton onClick={togglePasswordVisibility}>
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -247,23 +274,26 @@ const Login = () => {
             />
           </div>
 
-          <div className="remember-me">
+          <div className="form-group">
             <Checkbox
               checked={rememberMe}
-              onChange={() => setRememberMe((prev) => !prev)}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              color="primary"
             />
-            <label>Remember Me</label>
+            Remember Me
           </div>
 
-          <div className="forgot-password">
-            Forgot your password
-          </div>
-
-          <Button fullWidth variant="contained" type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Sign In'}
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
 
-          {error && <p className="error-message">{error}</p>}
+          {error && <div className="error-message">{error}</div>}
         </form>
       </div>
     </div>
