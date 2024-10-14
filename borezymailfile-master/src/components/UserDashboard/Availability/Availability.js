@@ -18,7 +18,7 @@ const BookingDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   
-  const [searchField, setSearchField] = useState('bookingCode');
+  const [searchField, setSearchField] = useState('');
   const [importedData, setImportedData] = useState(null);
   
   const navigate = useNavigate();
@@ -168,15 +168,26 @@ const BookingDashboard = () => {
 
   const handleSearch = () => {
     const lowerCaseQuery = searchQuery.toLowerCase();
+  
     if (lowerCaseQuery === '') {
       setBookings(bookings); // Show all bookings if search query is empty
     } else {
-      const filteredBookings = bookings.filter(booking =>
-        booking[searchField]?.toLowerCase().includes(lowerCaseQuery)
-      );
+      const filteredBookings = bookings.filter(booking => {
+        // For date comparison, we convert to a readable format
+        const formattedPickupDate = booking.pickupDate.toLocaleDateString().toLowerCase();
+        const formattedReturnDate = booking.returnDate.toLocaleDateString().toLowerCase();
+  
+        return (
+          booking[searchField]?.toString().toLowerCase().includes(lowerCaseQuery) ||
+          formattedPickupDate.includes(lowerCaseQuery) ||
+          formattedReturnDate.includes(lowerCaseQuery)
+        );
+      });
+      
       setBookings(filteredBookings);
     }
   };
+  
 
   useEffect(() => {
     handleSearch();
@@ -266,27 +277,29 @@ const BookingDashboard = () => {
         </div>
 
         <div className="toolbar-container">
-          <div className="search-bar-container9">
-            <img src={search} alt="search icon" className="search-icon9" />
+          <div className="search-bar-container7">
+            <img src={search} alt="search icon" className="search-icon7" />
             <select
               value={searchField}
               onChange={(e) => setSearchField(e.target.value)}
-              className="search-field"
+              className="search-dropdown7"
             >
-              <option value="bookingId">Booking ID</option>
-              <option value="receiptNumber">Receipt Number</option>
-              <option value="productCode">Product Code</option>
-              <option value="username">Username</option>
-              <option value="contactNo">Contact No</option>
+             <option value="bookingId">Booking ID</option>
+                <option value="receiptNumber">Receipt Number</option>
+                <option value="productCode">Product Code</option>
+                <option value="username">Username</option>
+                <option value="contactNo">Contact No</option>
+                <option value="pickupDate">Pickup Date</option>
+                <option value="returnDate">Return Date</option>
             </select>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
+              
               placeholder="Search..."
             />
-            <button onClick={handleSearch} className="search-button">Search</button>
+            {/* <button onClick={handleSearch} className="search-button">Search</button> */}
           </div>
           <div className="toolbar-actions">
             <button className="action-button" onClick={exportToCSV}>

@@ -1,10 +1,21 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation , useNavigate } from 'react-router-dom';
 import './UseSidebar.css';
-import { FaCalendarCheck, FaUsers, FaUser, FaPlusSquare, FaBoxOpen, FaRegFileAlt, FaMicrosoft, FaGift } from 'react-icons/fa';
-
+import { FaCalendarCheck, FaUsers, FaUser, FaPlusSquare, FaBoxOpen, FaRegFileAlt, FaMicrosoft, FaGift ,  } from 'react-icons/fa';
+ import user from '../../assets/user.png';
 const UserSidebar = ({ isOpen }) => {
   const location = useLocation();
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear local storage and session storage
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // Redirect to login page
+    navigate('/');
+  };
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -54,6 +65,11 @@ const UserSidebar = ({ isOpen }) => {
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Report
             </Link>
           </li>
+          <li className="sidebar-link logout-button">
+            <button onClick={handleLogout} className="logout-btn">
+              <img src={user} alt="Logout" className="icon" /> Logout
+            </button>
+          </li>
 
         </ul>
       </nav>
@@ -62,3 +78,7 @@ const UserSidebar = ({ isOpen }) => {
 };
 
 export default UserSidebar;
+
+
+
+

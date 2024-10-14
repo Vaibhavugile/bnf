@@ -290,9 +290,9 @@ useEffect(() => {
   
         if (overlappingBookings.length >0) {
           const totalOverlapQuantity = overlappingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity);
+          console.log('Total Overlapping Quantity (less):', totalOverlapQuantity);
           availableQuantity -= totalOverlapQuantity;
-          console.log('New Available Quantity after Greater Overlap:', availableQuantity);
+          console.log('New Available Quantity after  Overlap:', availableQuantity);
         }
       } else if (bookingsGreater.length > 0 && bookingsLess.length === 0) {
         console.log('Only Bookings Greater exist.');

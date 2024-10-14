@@ -226,12 +226,12 @@ const ProductDashboard = () => {
         </h2>
         <p style={{ marginLeft: '10px' }}>{totalProducts} Products</p>
         <div className="toolbar-container">
-          <div className="search-bar-container">
-            <img src={searchIcon} alt="search icon" className="search-icon" />
+          <div className="search-bar-container7">
+            <img src={searchIcon} alt="search icon" className="search-icon7" />
             <select
               value={searchField}
               onChange={(e) => setSearchField(e.target.value)}
-              className="search-dropdown"
+              className="search-dropdown7"
             >
               <option value="productName">Product Name</option>
               <option value="brandName">Brand Name</option>
