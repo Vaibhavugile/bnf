@@ -247,7 +247,7 @@ useEffect(() => {
   
       const bookingsRef = collection(productRef, 'bookings');
       const qLess = query(bookingsRef, where('bookingId', '<', bookingId), orderBy('bookingId', 'asc'));
-      const qGreater = query(bookingsRef, where('bookingId', '>', bookingId), orderBy('bookingId', 'asc'));
+      const qGreater = query(bookingsRef, where('bookingId', '>=', bookingId), orderBy('bookingId', 'asc'));
   
       const querySnapshotLess = await getDocs(qLess);
       const querySnapshotGreater = await getDocs(qGreater);
@@ -284,20 +284,21 @@ useEffect(() => {
       if (bookingsLess.length > 0 && bookingsGreater.length === 0) {
         console.log('Only Bookings Less exist.');
   
-        const overlappingBooking = bookingsLess.find(
-          (booking) => booking.returnDate > pickupDateObj
+        const overlappingBookings = bookingsLess.filter(
+          (booking) => booking.returnDate.getTime() > pickupDateObj
         );
   
-        if (overlappingBooking) {
-          console.log('Overlapping Booking (Less):', overlappingBooking);
-          availableQuantity -= overlappingBooking.quantity;
-          console.log('New Available Quantity after Less Overlap:', availableQuantity);
+        if (overlappingBookings.length >0) {
+          const totalOverlapQuantity = overlappingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
+          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity);
+          availableQuantity -= totalOverlapQuantity;
+          console.log('New Available Quantity after Greater Overlap:', availableQuantity);
         }
       } else if (bookingsGreater.length > 0 && bookingsLess.length === 0) {
         console.log('Only Bookings Greater exist.');
   
         const overlappingBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate < returnDateObj && booking.returnDate
+          (booking) => booking.pickupDate.getTime() < returnDateObj 
         );
   
         if (overlappingBookings.length > 0) {
@@ -310,10 +311,10 @@ useEffect(() => {
         console.log('Both Bookings Less and Greater exist.');
   
         const lessOverlapBookings = bookingsLess.filter(
-          (booking) => booking.returnDate > pickupDateObj
+          (booking) => booking.returnDate.getTime() > pickupDateObj.getTime()
         );
         const greaterOverlapBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate < returnDateObj && booking.returnDate > pickupDateObj
+          (booking) => booking.pickupDate.getTime() < returnDateObj.getTime() && booking.returnDate > pickupDateObj
         );
   
         let totalOverlapQuantity1 = 0;
@@ -402,7 +403,7 @@ useEffect(() => {
       // Calculate the next booking ID
       let newBookingId = existingBookings.length + 1;
       for (let i = 0; i < existingBookings.length; i++) {
-        if (pickupDateObj < existingBookings[i].pickupDate) {
+        if (pickupDateObj.getTime() < existingBookings[i].pickupDate.getTime()) {
           newBookingId = i + 1;
           break;
         }
