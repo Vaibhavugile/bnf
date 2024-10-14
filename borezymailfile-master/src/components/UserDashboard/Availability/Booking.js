@@ -218,38 +218,43 @@ useEffect(() => {
     
   };
   
-  
   const checkAvailability = async (index) => {
     const { productCode, pickupDate, returnDate, quantity } = products[index];
     const pickupDateObj = new Date(pickupDate);
     const returnDateObj = new Date(returnDate);
-    const bookingId = await getNextBookingId(pickupDateObj,productCode);
-     // Replace with actual booking ID logic if needed
-
+    const bookingId = await getNextBookingId(pickupDateObj, productCode); // Replace with actual booking ID logic if needed
+  
+    console.log('Checking availability for Product Code:', productCode);
+    console.log('Pickup Date:', pickupDateObj, 'Return Date:', returnDateObj);
+    console.log('Booking ID:', bookingId);
+  
     try {
       const productRef = doc(db, 'products', productCode);
       const productDoc = await getDoc(productRef);
-
+  
       if (!productDoc.exists()) {
         const newProducts = [...products];
         newProducts[index].errorMessage = 'Product not found.';
         setProducts(newProducts);
+        console.log('Product not found:', productCode);
         return;
       }
-
+  
       const productData = productDoc.data();
       const maxAvailableQuantity = productData.quantity || 0;
-
+  
+      console.log('Max Available Quantity for Product:', productCode, 'is', maxAvailableQuantity);
+  
       const bookingsRef = collection(productRef, 'bookings');
       const qLess = query(bookingsRef, where('bookingId', '<', bookingId), orderBy('bookingId', 'asc'));
       const qGreater = query(bookingsRef, where('bookingId', '>', bookingId), orderBy('bookingId', 'asc'));
-
+  
       const querySnapshotLess = await getDocs(qLess);
       const querySnapshotGreater = await getDocs(qGreater);
-
+  
       const bookingsLess = [];
       const bookingsGreater = [];
-
+  
       querySnapshotLess.forEach((doc) => {
         const bookingData = doc.data();
         bookingsLess.push({
@@ -259,7 +264,7 @@ useEffect(() => {
           quantity: bookingData.quantity,
         });
       });
-
+  
       querySnapshotGreater.forEach((doc) => {
         const bookingData = doc.data();
         bookingsGreater.push({
@@ -269,60 +274,79 @@ useEffect(() => {
           quantity: bookingData.quantity,
         });
       });
-      console.log('Bookings Less:', bookingsLess);  // Log bookings before current booking
-      console.log('Bookings Greater:', bookingsGreater);  // Log bookings after current booking
   
-
+      console.log('Bookings Less (Before Current Booking):', bookingsLess);
+      console.log('Bookings Greater (After Current Booking):', bookingsGreater);
+  
       let availableQuantity = maxAvailableQuantity;
-
+      console.log('Initial Available Quantity:', availableQuantity);
+  
       if (bookingsLess.length > 0 && bookingsGreater.length === 0) {
+        console.log('Only Bookings Less exist.');
+  
         const overlappingBooking = bookingsLess.find(
           (booking) => booking.returnDate > pickupDateObj
         );
-
+  
         if (overlappingBooking) {
+          console.log('Overlapping Booking (Less):', overlappingBooking);
           availableQuantity -= overlappingBooking.quantity;
+          console.log('New Available Quantity after Less Overlap:', availableQuantity);
         }
       } else if (bookingsGreater.length > 0 && bookingsLess.length === 0) {
+        console.log('Only Bookings Greater exist.');
+  
         const overlappingBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate < returnDateObj
+          (booking) => booking.pickupDate < returnDateObj && booking.returnDate
         );
-
+  
         if (overlappingBookings.length > 0) {
           const totalOverlapQuantity = overlappingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
+          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity);
           availableQuantity -= totalOverlapQuantity;
+          console.log('New Available Quantity after Greater Overlap:', availableQuantity);
         }
       } else if (bookingsLess.length > 0 && bookingsGreater.length > 0) {
-        const lessOverlapBooking = bookingsLess.find(
+        console.log('Both Bookings Less and Greater exist.');
+  
+        const lessOverlapBookings = bookingsLess.filter(
           (booking) => booking.returnDate > pickupDateObj
         );
         const greaterOverlapBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate < returnDateObj
+          (booking) => booking.pickupDate < returnDateObj && booking.returnDate > pickupDateObj
         );
-
-        let totalOverlapQuantity = 0;
-
-        if (lessOverlapBooking) {
-          totalOverlapQuantity += lessOverlapBooking.quantity;
+  
+        let totalOverlapQuantity1 = 0;
+        let totalOverlapQuantity2=0;
+        
+  
+        if (lessOverlapBookings.length>0) {
+          totalOverlapQuantity1 += lessOverlapBookings.reduce((sum, booking) => sum + booking.quantity, 0);
+          console.log('Overlapping Booking (Less):',totalOverlapQuantity1);
         }
-
+  
         if (greaterOverlapBookings.length > 0) {
-          totalOverlapQuantity += greaterOverlapBookings.reduce((sum, booking) => sum + booking.quantity, 0);
+          totalOverlapQuantity2 += greaterOverlapBookings.reduce((sum, booking) => sum + booking.quantity, 0);
+          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity2);
         }
-
-        availableQuantity -= totalOverlapQuantity;
-      }
-
-      if (availableQuantity < 0) {
-        availableQuantity = 0;
+         let totalOverlapQuantity3=totalOverlapQuantity1 + totalOverlapQuantity2;
+  
+        availableQuantity -= totalOverlapQuantity3;
+        console.log('New Available Quantity after Combined Overlap:', availableQuantity);
       }
   
-
+      if (availableQuantity < 0) {
+        availableQuantity = 0;
+        console.log('Available Quantity is negative, setting to 0');
+      }
+  
+      console.log('Final Available Quantity:', availableQuantity);
+  
       const newProducts = [...products];
       newProducts[index].availableQuantity = availableQuantity;
       newProducts[index].errorMessage = ''; // Clear error message if successful
       setProducts(newProducts);
-
+  
     } catch (error) {
       console.error('Error checking availability:', error);
       const newProducts = [...products];
@@ -330,6 +354,7 @@ useEffect(() => {
       setProducts(newProducts);
     }
   };
+  
 
   const addProductForm = () => {
     setProducts([...products, {  pickupDate: firstProductDates.pickupDate, returnDate: firstProductDates.returnDate,productCode: '', quantity: '', availableQuantity: null, errorMessage: '', productImageUrl: '',productName:'', }]);
