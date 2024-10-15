@@ -20,10 +20,12 @@ function Booking() {
   const [isAvailabilityFormVisible, setIsAvailabilityFormVisible] = useState(true); 
   const [isAvailability1FormVisible, setIsAvailability1FormVisible] = useState(false); 
   const [receiptNumber, setReceiptNumber] = useState('');
+  const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false); 
 
   
   const [visibleForm, setVisibleForm] = useState(''); // Track visible form by its id
-  const [userDetails, setUserDetails] = useState({ name: '', email: '', contact: '', alternativecontactno: '',identityproof:'',identitynumber:'',source:'',customerby:'', receiptby:'',stage: 'Booking',alterations:'' });
+  const [userDetails, setUserDetails] = useState({ name: '', email: '', contact: '', alternativecontactno: '',identityproof:'',identitynumber:'',source:'',customerby:'', receiptby:'',stage: 'Booking',alterations:'', grandTotalRent: '', grandTotalDeposit: '',discountOnRent: '',
+    discountOnDeposit: '', finalrent:'',finaldeposite:'',totalamounttobepaid:'',amountpaid:'',paymentstatus:'',firstpaymentmode:'',firstpaymentdtails:'',secondpaymentmode:'',secondpaymentdetails:'',specialnote:'',});
 
   const [firstProductDates, setFirstProductDates] = useState({
     pickupDate: '',
@@ -495,6 +497,7 @@ const handleDiscountChange = (e) => {
                 totalPrice += extraRent * remainingDuration * quantity;
               }
             }
+            let totaldeposite = deposit *quantity;
           console.log("Price Type: ", priceType);
           console.log("Duration: ", duration);
           console.log("Full Periods: ", fullPeriods);
@@ -506,7 +509,8 @@ const handleDiscountChange = (e) => {
          return {
             totalPrice,
             deposit,
-            grandTotal: `${parseInt (totalPrice) + parseInt(deposit)}`,
+            totaldeposite,
+            grandTotal: `${parseInt (totalPrice) + parseInt(totaldeposite)}`,
             
           };
         };
@@ -550,6 +554,7 @@ const handleDiscountChange = (e) => {
           numDays: days,
           quantity: product.quantity,
           totalPrice: totalCost.totalPrice,
+          totaldeposite:totalCost.totaldeposite,
           grandTotal: totalCost.grandTotal,
           productName,
         });
@@ -767,6 +772,51 @@ const handleDiscountChange = (e) => {
       products: prevReceipt.products.filter((product) => product.productCode !== productCode)
     }));
   };
+  const calculateGrandTotalRent = () => {
+    return receipt.products.reduce((total, product) => total + product.totalPrice, 0);
+  };
+  useEffect(() => {
+    if (receipt && receipt.products) {
+      const grandTotalRent = calculateGrandTotalRent();
+      setUserDetails(prevDetails => ({
+        ...prevDetails,
+        grandTotalRent
+      }));
+    }
+  }, [receipt]);
+  const calculateGrandTotalDeposite = () => {
+    return receipt.products.reduce((total, product) => total + product.totaldeposite, 0);
+  };
+  useEffect(() => {
+    if (receipt && receipt.products) {
+      const grandTotalDeposit = calculateGrandTotalDeposite();
+      setUserDetails(prevDetails => ({
+        ...prevDetails,
+        grandTotalDeposit
+      }));
+    }
+  }, [receipt]);
+
+
+  // Calculate final rent, deposit, and amount to be paid
+useEffect(() => {
+  const finalrent = userDetails.grandTotalRent - (userDetails.discountOnRent || 0);
+  const finaldeposite = userDetails.grandTotalDeposit - (userDetails.discountOnDeposit || 0);
+  const totalamounttobepaid = finalrent + finaldeposite;
+  const balance = totalamounttobepaid - (userDetails.amountpaid || 0);
+
+  setUserDetails(prevDetails => ({
+    ...prevDetails,
+    finalrent,
+    finaldeposite,
+    totalamounttobepaid,
+    balance,
+  }));
+}, [userDetails.grandTotalRent, userDetails.discountOnRent, userDetails.grandTotalDeposit, userDetails.discountOnDeposit,userDetails.amountpaid]);
+
+
+  
+  
   
 
   return (
@@ -1063,7 +1113,7 @@ const handleDiscountChange = (e) => {
                   
                 </div>
                 <div className="receipt-column">
-                  <strong>Grand Total</strong>
+                  <strong>Total Deposite</strong>
                 </div>
                 <div className="receipt-column">
                   <strong>Action</strong>
@@ -1088,7 +1138,7 @@ const handleDiscountChange = (e) => {
                  
                   
                   <div className="receipt-column">₹{product.totalPrice}</div>
-                  <div className="receipt-column">₹{product.grandTotal}</div>
+                  <div className="receipt-column">₹{product.totaldeposite}</div>
                   <div className="receipt-column">
                   <FaTrash onClick={() => handleDeleteProduct(product.productCode)}
                   style={{ cursor: 'pointer', color: 'red' }} 
@@ -1098,28 +1148,190 @@ const handleDiscountChange = (e) => {
                 </div>
               ))}
               <div className="receipt-row">
-      <div className="receipt-column">
-        <strong>Alterations:</strong>
-      </div>
-      <div className="receipt-column">
-            <input
-             type="text"
-             value={userDetails.alterations}
-             onChange={(e) => setUserDetails({ ...userDetails, alterations: e.target.value })}
+                <div className="receipt-column">
+                  <strong>Alterations:</strong>
+                </div>
+                <div className="receipt-column">
+                      <input
+                      type="text"
+                      value={userDetails.alterations}
+                      onChange={(e) => setUserDetails({ ...userDetails, alterations: e.target.value })}
+                      
+                    />
+                </div>
+              </div>
+                <button onClick={() => setIsPaymentFormVisible(true)} className='receiptconfirmpayment'>
+                    Proceed To Payment
+                </button>
+
+                {isPaymentFormVisible && (
+                  <div className="payment-form-container">
+                    <h3>Payment Details</h3>
+                    
+                    <div className="payment-form-row">
+                      <label>Grand Total Rent</label>
+                      <input
+                        type="text"
+                        value={userDetails.grandTotalRent}
+                        readOnly 
+                      />
+                    </div>
+
+                    <div className="payment-form-row">
+                      <label>Grand Total Deposit</label>
+                      <input
+                        type="text"
+                        value={userDetails.grandTotalDeposit}
+                        readOnly 
+                      />
+                    </div>
+
+                    <div className="payment-form-row">
+                      <label>Discount on Rent</label>
+                      <input
+                        type="number"
+                        value={userDetails.discountOnRent}
+                        onChange={(e) => setUserDetails({ ...userDetails, discountOnRent: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="payment-form-row">
+                      <label>Discount on Deposit</label>
+                      <input
+                        type="number"
+                        value={userDetails.discountOnDeposit}
+                        onChange={(e) => setUserDetails({ ...userDetails, discountOnDeposit: e.target.value })}
+                      />
+                    </div>
+                    <div className="payment-form-row">
+                      <label>Final Rent</label>
+                      <input
+                        type="text"
+                        value={userDetails.finalrent}
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="payment-form-row">
+                      <label>Final Deposit</label>
+                      <input
+                        type="text"
+                        value={userDetails.finaldeposite}
+                        readOnly
+                      />
+                    </div>
+
+                    {/* Display Total Amount to be Paid */}
+                    <div className="payment-form-row">
+                      <label>Amount to be Paid</label>
+                      <input
+                        type="text"
+                        value={userDetails.totalamounttobepaid}
+                        readOnly
+                      />
+                    </div>
+                    <div className="payment-form-row">
+                    <label>Amount Paid</label>
+                    <input
+                      type="number"
+                      value={userDetails.amountpaid}
+                      onChange={(e) => setUserDetails({ ...userDetails, amountpaid: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Display Balance (Amount to be Paid - Amount Paid) */}
+                  <div className="payment-form-row">
+                    <label>Balance</label>
+                    <input
+                      type="text"
+                      value={userDetails.balance}
+                      readOnly
+                    />
+                  </div>
+                  <div className="payment-form-row">
+                    <label>Payment Status</label>
+                    <select
+                      value={userDetails.paymentstatus}
+                      onChange={(e) => setUserDetails({ ...userDetails, paymentstatus: e.target.value })}
+                      
+                    >
+                      <option value="fullpayment" >Full Payment</option>
+                      <option value="depositepending">Deposite Pending</option>
+                      <option value="partialpayment">Partial Payment</option>
+                      
+                      
+                    </select>
+                  </div>
+
+                  <div className="payment-form-row">
+                    <label>1st Payment Mode </label>
+                    <select
+                      value={userDetails.firstpaymentmode}
+                      onChange={(e) => setUserDetails({ ...userDetails, firstpaymentmode: e.target.value })}
+                      
+                    >
+                      <option value="upi" >UPI</option>
+                      <option value="cash">Cash</option>
+                      <option value="card">Partial Card</option>
+                      
+                      
+                    </select>
+                  </div>
+                  <div className="payment-form-row">
+                    <label>1st Payment Details</label>
+                    <input
+                      type="text"
+                      value={userDetails.firstpaymentdtails}
+                      onChange={(e) => setUserDetails({ ...userDetails, firstpaymentdtails: e.target.value })}
+                    />
+                  </div>
+                  <div className="payment-form-row">
+                    <label>2nd Payment Mode </label>
+                    <select
+                      value={userDetails.secondpaymentmode}
+                      onChange={(e) => setUserDetails({ ...userDetails, secondpaymentmode: e.target.value })}
+                      
+                    >
+                      <option value="upi" >UPI</option>
+                      <option value="cash">Cash</option>
+                      <option value="card">Partial Card</option>
+                      
+                      
+                    </select>
+                  </div>
+                  <div className="payment-form-row">
+                    <label>2nd Payment Details</label>
+                    <input
+                      type="text"
+                      value={userDetails.secondpaymentdetails}
+                      onChange={(e) => setUserDetails({ ...userDetails, secondpaymentdetails: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="payment-form-row">
+                    <label>Special Note/followup Comment</label>
+                    <input
+                      type="text"
+                      value={userDetails.specialnote}
+                      onChange={(e) => setUserDetails({ ...userDetails, specialnote: e.target.value })}
+                    />
+                  </div>
+
+
+
+                    {/* Add more fields as needed */}
+
+                    <button onClick={handleConfirmPayment} className="submit-payment-button">
+                      Confirm Payment
+                    </button>
+                  </div>
+                )}
+
+
+    
+    
+
              
-           />
-      </div>
-    </div>
-
-    
-    
-
-              {!isPaymentConfirmed && (
-                <button onClick={handleConfirmPayment} className='receiptconfirmpayment'> Proceed To Payment</button>
-              )}
-              {isPaymentConfirmed && (
-                <p className="success-message">Payment confirmed! Your booking has been saved.</p>
-              )}
             </div>
           )}
       </div>
