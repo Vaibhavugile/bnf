@@ -21,6 +21,8 @@ function Booking() {
   const [isAvailability1FormVisible, setIsAvailability1FormVisible] = useState(false); 
   const [receiptNumber, setReceiptNumber] = useState('');
   const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false); 
+  const [subUsers, setSubUsers] = useState([]);
+  const [selectedSubUser, setSelectedSubUser] = useState('');
 
   
   const [visibleForm, setVisibleForm] = useState(''); // Track visible form by its id
@@ -176,14 +178,33 @@ const handleDiscountChange = (e) => {
 
     // Ensure pickupDate is not earlier than today
     if (field === 'pickupDate') {
-        const today = new Date();
-        const selectedDate = new Date(value);
-
-        // Check if selected pickupDate is in the past
-        if (selectedDate < today) {
-            alert('Pickup date cannot be in the past.');
-            return;
-        }
+      const today = new Date();
+      const selectedDate = new Date(value);
+  
+      // Check if selected pickupDate is in the past
+      if (selectedDate < today) {
+        alert('Pickup date cannot be in the past.');
+        return;
+      }
+  
+      // Check if pickupDate is greater than returnDate
+      const returnDate = new Date(newProducts[index].returnDate);
+      if (returnDate && selectedDate > returnDate) {
+        alert('Pickup date cannot be later than return date.');
+        return;
+      }
+    }
+  
+    // Ensure returnDate is not earlier than pickupDate
+    if (field === 'returnDate') {
+      const pickupDate = new Date(newProducts[index].pickupDate);
+      const selectedDate = new Date(value);
+  
+      // Check if returnDate is earlier than pickupDate
+      if (pickupDate && selectedDate < pickupDate) {
+        alert('Return date cannot be earlier than pickup date.');
+        return;
+      }
     }
 
     // Update the field value for the selected product
@@ -480,28 +501,28 @@ const handleDiscountChange = (e) => {
             
           }
           
-            let fullPeriods = Math.floor(duration / minimumRentalPeriod); // Full multiples of the minimum rental period
-            let remainingDuration = duration % minimumRentalPeriod; // Extra time beyond the full periods
+          let totalPrice = 0;
+          let extraDuration = duration - minimumRentalPeriod;
 
-            let totalPrice = 0;
+          if (duration <= minimumRentalPeriod) {
+            // If the total duration is less than or equal to the minimum rental period
+            totalPrice = price * quantity;
+          } else {
+            // Apply base price for minimum rental period
+            totalPrice = price * quantity;
+        
+            // Apply extra rent for the remaining duration beyond the minimum rental period
+           
+            totalPrice += extraRent * extraDuration * quantity;
+          }
+        
 
-            if (fullPeriods === 0) {
-              // If full periods is 0, apply the base price for the entire duration
-              totalPrice = price * quantity;
-            } else {
-              // Calculate price for the full periods
-              totalPrice = price * fullPeriods * quantity;
-
-              // Add extra price for the remaining duration beyond full periods
-              if (remainingDuration > 0) {
-                totalPrice += extraRent * remainingDuration * quantity;
-              }
-            }
+            
             let totaldeposite = deposit *quantity;
           console.log("Price Type: ", priceType);
           console.log("Duration: ", duration);
-          console.log("Full Periods: ", fullPeriods);
-          console.log("Remaining Days/Hours: ", remainingDuration);
+          
+          console.log("Extra Days/Hours: ", extraDuration);
           console.log("Price per unit: ", price);
           console.log("Extra Price per additional duration: ", extraRent);
           console.log("Calculated Total Price: ", totalPrice);
@@ -631,7 +652,7 @@ const handleDiscountChange = (e) => {
         }
         const productData = productDoc.data();
         const { price, deposit, priceType,minimumRentalPeriod,extraRent } = productData;
-        const calculateTotalPrice = (price, deposit, priceType, quantity, pickupDate, returnDate,minimumRentalPeriod) => {
+        const calculateTotalPrice = (price, deposit, priceType, quantity, pickupDate, returnDate, minimumRentalPeriod,extraRent) => {
           const pickupDateObj = new Date(pickupDate);
           const returnDateObj = new Date(returnDate);
           const millisecondsPerDay = 1000 * 60 * 60 * 24;
@@ -642,32 +663,47 @@ const handleDiscountChange = (e) => {
           // Determine the duration based on priceType
           if (priceType === 'hourly') {
             duration = Math.ceil((returnDateObj - pickupDateObj) / millisecondsPerHour); 
-            if (minimumRentalPeriod) {
-              duration = Math.ceil(duration / minimumRentalPeriod); // Ensure duration is at least the minimum rental period
-              }  // Hours difference
+             // Hours difference
           } else if (priceType === 'monthly') {
-            duration = Math.ceil((returnDateObj - pickupDateObj) / (millisecondsPerDay * 30));
-            if (minimumRentalPeriod) {
-              duration = Math.ceil(duration / minimumRentalPeriod); // Ensure duration is at least the minimum rental period
-              }  // Months difference
+            duration = Math.ceil((returnDateObj - pickupDateObj) / (millisecondsPerDay * 30)); 
+            // Months difference
           } else {
             duration = Math.ceil((returnDateObj - pickupDateObj) / millisecondsPerDay);
-            if (minimumRentalPeriod) {
-              duration = Math.ceil(duration / minimumRentalPeriod); // Ensure duration is at least the minimum rental period
-              }  // Days difference
+            
           }
+          
+          let totalPrice = 0;
+          let extraDuration = duration - minimumRentalPeriod;
+
+          if (duration <= minimumRentalPeriod) {
+            // If the total duration is less than or equal to the minimum rental period
+            totalPrice = price * quantity;
+          } else {
+            // Apply base price for minimum rental period
+            totalPrice = price * quantity;
+        
+            // Apply extra rent for the remaining duration beyond the minimum rental period
+            
+            totalPrice += extraRent * extraDuration * quantity;
+          }
+        
+
+            
+            let totaldeposite = deposit *quantity;
           console.log("Price Type: ", priceType);
           console.log("Duration: ", duration);
-          console.log("Price per unit: ", price);
-          console.log("Quantity: ", quantity);
-          console.log("minimumrentalprice",minimumRentalPeriod);
           
-          const totalPrice = price * duration * quantity;
+          console.log("Extra Days/Hours: ", extraDuration);
+          console.log("Price per unit: ", price);
+          console.log("Extra Price per additional duration: ", extraRent);
           console.log("Calculated Total Price: ", totalPrice);
-          return {
+        
+         return {
             totalPrice,
             deposit,
-            grandTotal: totalPrice + deposit,
+            totaldeposite,
+            grandTotal: `${parseInt (totalPrice) + parseInt(totaldeposite)}`,
+            
           };
         };
         const totalCost = calculateTotalPrice(
@@ -677,8 +713,10 @@ const handleDiscountChange = (e) => {
           product.quantity, 
           pickupDateObj, 
           returnDateObj,
-          minimumRentalPeriod
+          minimumRentalPeriod,
+          extraRent,
         );
+        
         
   
   
@@ -814,6 +852,31 @@ useEffect(() => {
   }));
 }, [userDetails.grandTotalRent, userDetails.discountOnRent, userDetails.grandTotalDeposit, userDetails.discountOnDeposit,userDetails.amountpaid]);
 
+useEffect(() => {
+  const fetchSubUsers = async () => {
+    try {
+      const q = query(collection(db, 'subusers'), where('branchCode', '==', userData.branchCode));
+      const querySnapshot = await getDocs(q);
+      
+      const subUsersData = [];
+      querySnapshot.forEach((doc) => {
+        subUsersData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      setSubUsers(subUsersData); // Assuming you have a state called subUsers
+    } catch (error) {
+      console.error('Error fetching sub-users:', error);
+    }
+  };
+
+  fetchSubUsers();
+}, [userData.branchCode]);
+
+
+// Handle the selection of a sub-user
 
   
   
@@ -930,7 +993,6 @@ useEffect(() => {
                 <FaTrash type="button" className='cancel-button' onClick={() => removeProductForm(index)}/>
               )}
 
-          <button type="button" className='checkavailability' onClick={() => checkAvailability(index)}>Check Availability</button>
            
               
          
@@ -948,7 +1010,8 @@ useEffect(() => {
               )
             )}
           </div>
-          
+          <button type="button" className='checkavailability' onClick={() => checkAvailability(index)}>Check Availability</button>
+
           
         </div>
       ))}
@@ -969,8 +1032,8 @@ useEffect(() => {
          <div className='customer-details-form'>
          <h9>Customer Details</h9>
         
-         
-         <div className="form-group1" style={{ marginTop: '80px' }} >
+         <div className="date-row" style={{  width: '700px',display:'flex',marginTop: '80px', }}>
+           <div className="form-group1" style={{ flex: '0 0 45%', marginRight: '0px' }} >
            <label>Name</label>
            <input
              type="text"
@@ -978,17 +1041,21 @@ useEffect(() => {
              onChange={(e) => setUserDetails({ ...userDetails, name: e.target.value })}
              required
            />
-         </div>
-         <div className="form-group1">
-           <label>Email Id</label>
-           <input
-             type="email"
-             value={userDetails.email}
-             onChange={(e) => setUserDetails({ ...userDetails, email: e.target.value })}
-             required
-           />
-         </div>
-         <div className="form-group1">
+           </div>
+           <div className="form-group1"style={{ flex: '0 0 45%', marginRight: '0px' }}>
+             <label>Email Id</label>
+             <input
+              type="email"
+              value={userDetails.email}
+              onChange={(e) => setUserDetails({ ...userDetails, email: e.target.value })}
+              required
+             />
+            </div>
+            </div>
+            
+          <div className="date-row" style={{  width: '700px',display:'flex', }}>
+
+         <div className="form-group1"style={{ flex: '0 0 45%', marginRight: '0px' }}>
            <label>Contact Number</label>
            <input
              type="text"
@@ -997,7 +1064,7 @@ useEffect(() => {
              required
            />
          </div>
-         <div className="form-group1">
+         <div className="form-group1"style={{ flex: '0 0 45%', marginRight: '0px' }}>
            <label>Alternative Phone Number</label>
            <input
              type="text"
@@ -1005,6 +1072,7 @@ useEffect(() => {
              onChange={(e) => setUserDetails({ ...userDetails, alternativecontactno: e.target.value })}
              required
            />
+         </div>
          </div>
        <div className="form-group1">
          <label>Identity Proof</label>
@@ -1046,23 +1114,35 @@ useEffect(() => {
 
 
          <div className="form-group1">
-           <label>Customer By</label>
-           <input
-             type="text"
-             value={userDetails.customerby}
-             onChange={(e) => setUserDetails({ ...userDetails, customerby: e.target.value })}
-             required
-           />
-         </div>
+            <label>Customer By</label>
+            <select
+              value={userDetails.customerby}
+              onChange={(e) => setUserDetails({ ...userDetails, customerby: e.target.value })}
+              required
+            >
+              <option value="" disabled>Select Sub-User</option>
+              {subUsers.map((subuser) => (
+                <option key={subuser.id} value={subuser.name}>
+                  {subuser.name}
+                </option>
+              ))}
+            </select>
+          </div>
          <div className="form-group1">
-           <label>Receipt By</label>
-           <input
-             type="text"
-             value={userDetails.receiptby}
-             onChange={(e) => setUserDetails({ ...userDetails, receiptby: e.target.value })}
-             required
-           />
-         </div>
+            <label>Receipt By</label>
+            <select
+              value={userDetails.receiptby}
+              onChange={(e) => setUserDetails({ ...userDetails, receiptby: e.target.value })}
+              required
+            >
+              <option value="" disabled>Select Sub-User</option>
+              {subUsers.map((subuser) => (
+                <option key={subuser.id} value={subuser.name}>
+                  {subuser.name}
+                </option>
+              ))}
+            </select>
+          </div>
          <div className="form-group1">
          <label>Stage</label>
          <select
@@ -1165,9 +1245,11 @@ useEffect(() => {
                 </button>
 
                 {isPaymentFormVisible && (
-                  <div className="payment-form-container">
+                  <div className="payment-form-container" style={{ marginTop: '80px', }} >
                     <h3>Payment Details</h3>
-                    
+                  <div className="date-row" style={{  width: '700px',display:'flex',marginTop: '80px', }}>
+
+                   <div className="payment-form row1" style={{ flex: '0 0 30%', marginRight: '0px' }} >
                     <div className="payment-form-row">
                       <label>Grand Total Rent</label>
                       <input
@@ -1185,6 +1267,8 @@ useEffect(() => {
                         readOnly 
                       />
                     </div>
+                    </div>
+                    <div className="payment-form row1" style={{ flex: '0 0 30%',marginLeft:"70px"}} >
 
                     <div className="payment-form-row">
                       <label>Discount on Rent</label>
@@ -1203,6 +1287,9 @@ useEffect(() => {
                         onChange={(e) => setUserDetails({ ...userDetails, discountOnDeposit: e.target.value })}
                       />
                     </div>
+                    </div>
+                    
+                    <div className="payment-form row1" style={{ flex: '0 0 30%',marginLeft:"70px"}} >
                     <div className="payment-form-row">
                       <label>Final Rent</label>
                       <input
@@ -1219,6 +1306,8 @@ useEffect(() => {
                         value={userDetails.finaldeposite}
                         readOnly
                       />
+                    </div>
+                    </div>
                     </div>
 
                     {/* Display Total Amount to be Paid */}
@@ -1248,7 +1337,7 @@ useEffect(() => {
                       readOnly
                     />
                   </div>
-                  <div className="payment-form-row">
+                  <div className="payment-form-row" style={{  width: '700px' }}>
                     <label>Payment Status</label>
                     <select
                       value={userDetails.paymentstatus}
@@ -1262,8 +1351,10 @@ useEffect(() => {
                       
                     </select>
                   </div>
+                  <div className="date-row" style={{  width: '700px',display:'flex', }}>
 
-                  <div className="payment-form-row">
+
+                  <div className="payment-form-row" style={{ flex: '0 0 45%', marginRight: '0px' }}>
                     <label>1st Payment Mode </label>
                     <select
                       value={userDetails.firstpaymentmode}
@@ -1272,12 +1363,12 @@ useEffect(() => {
                     >
                       <option value="upi" >UPI</option>
                       <option value="cash">Cash</option>
-                      <option value="card">Partial Card</option>
+                      <option value="card">Card</option>
                       
                       
                     </select>
                   </div>
-                  <div className="payment-form-row">
+                  <div className="payment-form-row"style={{ flex: '0 0 45%',marginLeft:"70px"}}>
                     <label>1st Payment Details</label>
                     <input
                       type="text"
@@ -1285,7 +1376,10 @@ useEffect(() => {
                       onChange={(e) => setUserDetails({ ...userDetails, firstpaymentdtails: e.target.value })}
                     />
                   </div>
-                  <div className="payment-form-row">
+                  </div>
+                  <div className="date-row" style={{  width: '700px',display:'flex', }}>
+
+                  <div className="payment-form-row" style={{ flex: '0 0 45%', marginRight: '0px' }}>
                     <label>2nd Payment Mode </label>
                     <select
                       value={userDetails.secondpaymentmode}
@@ -1294,18 +1388,19 @@ useEffect(() => {
                     >
                       <option value="upi" >UPI</option>
                       <option value="cash">Cash</option>
-                      <option value="card">Partial Card</option>
+                      <option value="card">Card</option>
                       
                       
                     </select>
                   </div>
-                  <div className="payment-form-row">
+                  <div className="payment-form-row" style={{ flex: '0 0 45%',marginLeft:"70px"}}>
                     <label>2nd Payment Details</label>
                     <input
                       type="text"
                       value={userDetails.secondpaymentdetails}
                       onChange={(e) => setUserDetails({ ...userDetails, secondpaymentdetails: e.target.value })}
                     />
+                  </div>
                   </div>
 
                   <div className="payment-form-row">
