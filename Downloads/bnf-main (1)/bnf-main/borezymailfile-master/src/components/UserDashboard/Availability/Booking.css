@@ -172,6 +172,7 @@
     font-size: 16px;
     line-height: 19px;
     /* identical to box height */
+    padding:10px;
 
     color: #000000;
 
@@ -183,7 +184,7 @@
   .form-group1 button {
     width: 100%;
    
-    padding: 10px;
+    
     border-radius: 5px;
     border: 1px solid #ccc;
     font-size: 16px;
@@ -420,4 +421,6 @@
    
     color: #FFFFFF;
 }
-
+.payment-form-row label {
+  padding:10px;
+}

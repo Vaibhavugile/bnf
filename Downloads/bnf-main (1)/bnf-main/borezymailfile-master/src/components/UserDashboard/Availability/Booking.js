@@ -752,7 +752,7 @@ const handleDiscountChange = (e) => {
       
   
       setIsPaymentConfirmed(true);
-      alert('Payment confirmed ',receiptNumber);
+      alert('Bill Created Successfully');
       navigate('/usersidebar/clients');
     } catch (error) {
       console.error('Error confirming payment:', error);
@@ -1081,10 +1081,10 @@ useEffect(() => {
            onChange={(e) => setUserDetails({ ...userDetails, identityproof: e.target.value })}
            required
          >
-           <option value="aadharcard" >AAdhar Card</option>
+           <option value="aadharcard" >Aadhaar Card</option>
            <option value="pancard">Pan Card</option>
            <option value="drivinglicence">Driving Licence</option>
-           <option value="passport">PassPort</option>
+           <option value="passport">Passport</option>
            <option value="college/officeid">College/Office Id </option>
          </select>
        </div>
@@ -1104,6 +1104,10 @@ useEffect(() => {
            onChange={(e) => setUserDetails({ ...userDetails, source: e.target.value })}
            required
          >
+           <option value="google" >Google</option>
+           <option value="instagram" >Instagram</option>
+           <option value="facebook" >Facebook</option>
+
            <option value="friendsandfamily" >Friends And Family</option>
            <option value="repeatcustomer">Repeat Customer</option>
            <option value="referal">Referal</option>
@@ -1180,11 +1184,12 @@ useEffect(() => {
                   <strong>Quantity</strong>
                 </div>
                 <div className="receipt-column">
-                  <strong>Deposit</strong>
-                </div>
-                <div className="receipt-column">
                   <strong>Rent</strong>
                 </div>
+                <div className="receipt-column">
+                  <strong>Deposit</strong>
+                </div>
+                
                
                 
                
@@ -1193,7 +1198,7 @@ useEffect(() => {
                   
                 </div>
                 <div className="receipt-column">
-                  <strong>Total Deposite</strong>
+                  <strong>Total Deposit</strong>
                 </div>
                 <div className="receipt-column">
                   <strong>Action</strong>
@@ -1212,8 +1217,9 @@ useEffect(() => {
                   <div className="receipt-column">{product.productName}</div>
                   <div className="receipt-column">{product.productCode}</div>
                   <div className="receipt-column">{product.quantity}</div>
-                  <div className="receipt-column">₹{product.deposit}</div>
                   <div className="receipt-column">₹{product.price}</div>
+                  <div className="receipt-column">₹{product.deposit}</div>
+                  
                   
                  
                   
@@ -1311,16 +1317,19 @@ useEffect(() => {
                     </div>
 
                     {/* Display Total Amount to be Paid */}
-                    <div className="payment-form-row">
-                      <label>Amount to be Paid</label>
+                    <div className="date-row" style={{  width: '700px',display:'flex', }}>
+
+
+                    <div className="payment-form-row" style={{ flex: '0 0 30%', marginRight: '0px' }}>
+                      <label> Total Amount to be Paid</label>
                       <input
                         type="text"
                         value={userDetails.totalamounttobepaid}
                         readOnly
                       />
                     </div>
-                    <div className="payment-form-row">
-                    <label>Amount Paid</label>
+                    <div className="payment-form-row" style={{ flex: '0 0 30%',marginLeft:"70px"}}>
+                    <label>Amount Paid/Advance</label>
                     <input
                       type="number"
                       value={userDetails.amountpaid}
@@ -1329,15 +1338,17 @@ useEffect(() => {
                   </div>
 
                   {/* Display Balance (Amount to be Paid - Amount Paid) */}
-                  <div className="payment-form-row">
-                    <label>Balance</label>
+                  <div className="payment-form-row" style={{ flex: '0 0 30%',marginLeft:"70px"}}>
+                    <label>Balance if any</label>
                     <input
                       type="text"
                       value={userDetails.balance}
                       readOnly
                     />
                   </div>
-                  <div className="payment-form-row" style={{  width: '700px' }}>
+                  </div>
+                  
+                  <div className="payment-form-row" style={{  width: '600px' }}>
                     <label>Payment Status</label>
                     <select
                       value={userDetails.paymentstatus}
@@ -1380,7 +1391,7 @@ useEffect(() => {
                   <div className="date-row" style={{  width: '700px',display:'flex', }}>
 
                   <div className="payment-form-row" style={{ flex: '0 0 45%', marginRight: '0px' }}>
-                    <label>2nd Payment Mode </label>
+                    <label>2nd Payment Mode (if any) </label>
                     <select
                       value={userDetails.secondpaymentmode}
                       onChange={(e) => setUserDetails({ ...userDetails, secondpaymentmode: e.target.value })}
@@ -1394,7 +1405,7 @@ useEffect(() => {
                     </select>
                   </div>
                   <div className="payment-form-row" style={{ flex: '0 0 45%',marginLeft:"70px"}}>
-                    <label>2nd Payment Details</label>
+                    <label>2nd Payment Details (if any)</label>
                     <input
                       type="text"
                       value={userDetails.secondpaymentdetails}
