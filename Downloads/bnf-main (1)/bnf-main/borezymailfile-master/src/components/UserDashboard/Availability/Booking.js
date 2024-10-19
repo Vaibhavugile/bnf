@@ -1339,7 +1339,7 @@ useEffect(() => {
 
                   {/* Display Balance (Amount to be Paid - Amount Paid) */}
                   <div className="payment-form-row" style={{ flex: '0 0 30%',marginLeft:"70px"}}>
-                    <label>Balance if any</label>
+                    <label>Balance (if any)</label>
                     <input
                       type="text"
                       value={userDetails.balance}

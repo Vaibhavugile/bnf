@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, updateDoc ,doc,getDoc,setDoc} from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import UserHeader from '../../UserDashboard/UserHeader';
@@ -127,41 +127,8 @@ const BookingDashboard = () => {
   const handleAddBooking = () => {
     navigate('/addbooking'); // Navigate to an add booking page
   };
-
-  const handleStageChange = async (productCode, bookingId, newStage) => {
-    console.log("Stage change initiated with:");
-    console.log("Product Code:", productCode);
-    console.log("Booking ID:", bookingId);
-    console.log("New Stage:", newStage);
-
-    if (!newStage) {
-      console.error('Invalid stage selected:', newStage);
-      return;
-    }
-
-    if (!productCode || !bookingId) {
-      console.error('Missing productCode or bookingId:', { productCode, bookingId });
-      return;
-    }
-
-    try {
-      const bookingsRef = collection(db, `products/${productCode}/bookings`);
-      const q = query(bookingsRef, where("bookingId", "==", bookingId));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        console.error(`No booking found with bookingId: ${bookingId}`);
-        return;
-      }
-
-      const bookingDocRef = querySnapshot.docs[0].ref;
-      await updateDoc(bookingDocRef, { 'userDetails.stage': newStage });
-      console.log('Booking stage updated successfully!');
-
-    } catch (error) {
-      console.error('Error updating booking stage:', error);
-    }
-  };
+  
+  
 
   
 
@@ -257,6 +224,72 @@ const BookingDashboard = () => {
     }
     return booking.stage === stageFilter; // Match booking stage
   });
+  
+
+  const handleStageChange = async (receiptNumber, newStage) => {
+    try {
+      // Find the booking to update based on receiptNumber
+      const bookingToUpdate = bookings.find(
+        (booking) => booking.receiptNumber === receiptNumber
+      );
+  
+      if (!bookingToUpdate) {
+        console.error('Booking not found');
+        return;
+      }
+  
+      // Extracting productCode and bookingId
+      const bookingId = String(bookingToUpdate.bookingId);
+      const products = bookingToUpdate.products; // Get all products
+  
+      // Log values to check their types and the document path
+      console.log('Booking ID:', receiptNumber, 'Type:', typeof receiptNumber);
+  
+      // Loop through all products
+      for (const product of products) {
+        const productCode = product.productCode; // Get product code
+        const bookingsRef = collection(db, `products/${productCode}/bookings`);
+        const q = query(bookingsRef, where("receiptNumber", "==", receiptNumber));
+        const querySnapshot = await getDocs(q);
+  
+        // Check if any documents were found
+        if (querySnapshot.empty) {
+          console.error('No documents found for bookingId:', bookingId);
+          // Create a new document if needed
+          const bookingDocRef = doc(bookingsRef, bookingId); // Create a new reference
+          await setDoc(bookingDocRef, {
+            userDetails: {
+              stage: newStage,
+              // Include other default values as necessary
+            },
+            // Include other relevant fields from bookingToUpdate if needed
+          });
+  
+          console.log('Document created successfully for product:', productCode, 'at path:', bookingDocRef.path);
+        } else {
+          // Reference to the specific booking document inside Firestore
+          const bookingDocRef = querySnapshot.docs[0].ref;
+  
+          // Update the booking stage in Firestore
+          await updateDoc(bookingDocRef, { 'userDetails.stage': newStage });
+          console.log('Stage updated successfully for product:', productCode);
+        }
+      }
+  
+      // Update the state to reflect the change in the UI
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking.receiptNumber === receiptNumber
+            ? { ...booking, stage: newStage }
+            : booking
+        )
+      );
+  
+    } catch (error) {
+      console.error('Error updating stage:', error);
+    }
+  };
+  
 
   return (
     <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -287,8 +320,8 @@ const BookingDashboard = () => {
              <option value="bookingId">Booking ID</option>
                 <option value="receiptNumber">Receipt Number</option>
                 <option value="productCode">Product Code</option>
-                <option value="username">Username</option>
-                <option value="contactNo">Contact No</option>
+                <option value="username">Clients Name</option>
+                <option value="contactNo">Contact Number</option>
                 <option value="pickupDate">Pickup Date</option>
                 <option value="returnDate">Return Date</option>
             </select>
@@ -302,21 +335,24 @@ const BookingDashboard = () => {
             {/* <button onClick={handleSearch} className="search-button">Search</button> */}
           </div>
           <div className="toolbar-actions">
-            <button className="action-button" onClick={exportToCSV}>
+            <div className='action-buttons'>
+            <button className="export-button" onClick={exportToCSV}>
               <FaDownload /> Export
             </button>
-            <label htmlFor="file-upload" className="action-button">
+            <label htmlFor="import" className="import-button">
               <FaUpload /> Import
               <input
-                id="file-upload"
+                id="file"
                 type="file"
+                accept=".csv"
                 onChange={handleImport}
                 style={{ display: 'none' }}
               />
             </label>
-            <button className="action-button" onClick={handleAddBooking}>
+            <button className="add-product-button" onClick={handleAddBooking}>
               <FaPlus /> Add Booking
             </button>
+            </div>
           </div>
         </div>
 
@@ -330,19 +366,20 @@ const BookingDashboard = () => {
                   <tr>
                     <th>Receipt Number</th>
                     <th>Product Codes</th>
-                    <th>Username</th>
-                    <th>Contact No</th>
-                    <th>Email</th>
+                    <th>Clients Name</th>
+                    <th>Contact Number</th>
+                    <th>Email id </th>
                     <th>Pickup Date</th>
                     <th>Return Date</th>
-                    <th>Quantity</th>
+                    
                     <th>Stage</th>
-                    <th>Actions</th>
+                    
                   </tr>
                 </thead>
                 <tbody>
                   {finalFilteredBookings.map((booking) => (
-                     <tr key={booking.bookingId} onClick={() => handleBookingClick(booking)}>
+                    <tr key={`${booking.receiptNumber}`} onClick={() => handleBookingClick(booking)}>
+
                       <td>{booking.receiptNumber}</td>
                       <td>
                             {booking.products.map((product) => (
@@ -356,11 +393,11 @@ const BookingDashboard = () => {
                       <td>{booking.email}</td>
                       <td>{booking.pickupDate.toLocaleString()}</td>
                       <td>{booking.returnDate.toLocaleString()}</td>
-                      <td>{booking.quantity}</td>
+                      
                       <td>
                         <select
                           value={booking.stage}
-                          onChange={(e) => handleStageChange(booking.productCode, booking.bookingId, e.target.value)}
+                          onChange={(e) => handleStageChange(booking.receiptNumber, e.target.value)} // Make sure bookingId is being passed correctly
                         >
                           <option value="Booking">Booking</option>
                           <option value="pickup">Pick Up</option>
@@ -370,11 +407,7 @@ const BookingDashboard = () => {
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </td>
-                      <td>
-                        <button className="delete-button" onClick={() => handleDelete(booking.bookingId)}>
-                          <FaTrash />
-                        </button>
-                      </td>
+                      
                     </tr>
                   ))}
                 </tbody>
