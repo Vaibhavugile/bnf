@@ -8,7 +8,7 @@ import { useUser } from '../../Auth/UserContext';
 import search from '../../../assets/Search.png';
 import { FaSearch, FaDownload, FaUpload, FaPlus, FaEdit, FaTrash, FaCopy } from 'react-icons/fa';
 import './Availability.css'; // Create CSS for styling
-import RightSidebar from './BRightsidebar';
+
 const BookingDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ const BookingDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+ 
   
   const [searchField, setSearchField] = useState('');
   const [importedData, setImportedData] = useState(null);
@@ -28,14 +28,10 @@ const BookingDashboard = () => {
 
   const handleBookingClick = (booking) => {
     setSelectedReceiptNumber(booking.receiptNumber); // Set the selected receipt number
-    setRightSidebarOpen(true);
+  
   };
 
-  const closeRightSidebar = () => {
-    setRightSidebarOpen(false);
-    setSelectedReceiptNumber(null); // Reset when sidebar is closed
-  };
-
+  
   
   useEffect(() => {
     const fetchAllBookingsWithUserDetails = async () => {
@@ -125,7 +121,7 @@ const BookingDashboard = () => {
   };
 
   const handleAddBooking = () => {
-    navigate('/addbooking'); // Navigate to an add booking page
+    navigate('/usersidebar/availability'); // Navigate to an add booking page
   };
   
   
@@ -365,11 +361,13 @@ const BookingDashboard = () => {
                 <thead>
                   <tr>
                     <th>Receipt Number</th>
-                    <th>Product Codes</th>
+                    
                     <th>Clients Name</th>
                     <th>Contact Number</th>
                     <th>Email id </th>
+                    <th>Products</th>
                     <th>Pickup Date</th>
+                    
                     <th>Return Date</th>
                     
                     <th>Stage</th>
@@ -381,6 +379,10 @@ const BookingDashboard = () => {
                     <tr key={`${booking.receiptNumber}`} onClick={() => handleBookingClick(booking)}>
 
                       <td>{booking.receiptNumber}</td>
+                      
+                      <td>{booking.username}</td>
+                      <td>{booking.contactNo}</td>
+                      <td>{booking.email}</td>
                       <td>
                             {booking.products.map((product) => (
                             <div key={product.productCode}>
@@ -388,9 +390,6 @@ const BookingDashboard = () => {
                             </div>
                             ))}
                         </td>
-                      <td>{booking.username}</td>
-                      <td>{booking.contactNo}</td>
-                      <td>{booking.email}</td>
                       <td>{booking.pickupDate.toLocaleString()}</td>
                       <td>{booking.returnDate.toLocaleString()}</td>
                       
@@ -400,10 +399,10 @@ const BookingDashboard = () => {
                           onChange={(e) => handleStageChange(booking.receiptNumber, e.target.value)} // Make sure bookingId is being passed correctly
                         >
                           <option value="Booking">Booking</option>
-                          <option value="pickup">Pick Up</option>
                           <option value="pickupPending">Pickup Pending</option>
-                          <option value="return">Return</option>
+                          <option value="pickup">Pick Up</option>
                           <option value="returnPending">Return Pending</option>
+                          <option value="return">Return</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </td>
@@ -418,12 +417,7 @@ const BookingDashboard = () => {
           </div>
         )}
       </div>
-      <RightSidebar 
-        isOpen={rightSidebarOpen} 
-        booking={bookings.find(booking => booking.receiptNumber === selectedReceiptNumber)}
-        onClose={closeRightSidebar} 
-          // Pass the selected receipt number
-      />
+      
     </div>
   );
 };

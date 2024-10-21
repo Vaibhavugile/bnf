@@ -3,7 +3,7 @@ import { Button, Checkbox, TextField, IconButton, InputAdornment } from '@mui/ma
 import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Link } from 'react-router-dom';
 import { useUser } from './UserContext'; // Import the context
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import './login.css';
@@ -230,7 +230,7 @@ const Login = () => {
     <div className="sign-in-right">
       <div className="welcome-text">
         Welcome to <span className="highlighted-text">BOREZY</span> <br />
-        Booking. Rentals. Made Eazy
+        Booking. Rentals. Made Eazy.
       </div>
 
       <h5>Login</h5>
@@ -288,7 +288,7 @@ const Login = () => {
           <label>Remember Me</label>
         </div>
 
-        <div className="forgot-password">Forgot your password</div>
+        <p> <Link to="/forgot-password">Forgot your password?</Link></p>
 
         <Button 
 className="sign-in-button" 
@@ -298,7 +298,7 @@ type="submit"
 disabled={loading}
 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} // Conditionally show spinner
 >
-{loading ? 'Logging in...' : 'Login'}
+{loading ? 'Logging-in...' : 'Login'}
 </Button>
 
         {error && <p className="error-message">{error}</p>}

@@ -8,6 +8,9 @@
     align-items: flex-start; /* Aligns items at the top */
     justify-content: space-between; /* Provides space between form and image */
   }
+  .product-check input {
+    height: 70px;
+  }
   .booking-container1 h1 {
     position: absolute;
     width: 182px;
@@ -88,10 +91,10 @@
     padding: 10px 20px; /* Padding for the button */
     cursor: pointer; /* Pointer cursor on hover */
     font-size: 16px; /* Font size */
-    margin-top: 30px;
+    margin-top: 33px;
     width: 265px;
     height: 42px;
-    margin-left:800px ; 
+    margin-left:650px ; 
     
     background: #164DC3;
     border-radius: 5px;/* Space above the button */
@@ -214,7 +217,7 @@
     width: 265px;
     height: 42px;
     left: 350px;
-    margin-top: 60px;
+    margin-top: 62px;
 
     background: #008101;
     border-radius: 5px;

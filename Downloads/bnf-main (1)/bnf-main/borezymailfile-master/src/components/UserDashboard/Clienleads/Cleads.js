@@ -5,16 +5,17 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Cleads.css';
-import CSidebar from '../../UserDashboard/UserSidebar'; // Import the CSidebar component
-import ClientHeader from '../../UserDashboard/UserHeader'; // Import the ClientHeader component
+import UserHeader from '../../UserDashboard/UserHeader';
+import UserSidebar from '../../UserDashboard/UserSidebar';
+
 
 const ClientLeads = () => {
   const [formData, setFormData] = useState({
     leadName: '', 
     mobileNo: '',
     requirement: '',
-    fromDate: '',
-    toDate: '',
+    eventDate: '',
+    followupDate: '',
     source: 'google',
     stage: 'fresh lead',
     
@@ -31,10 +32,10 @@ const ClientLeads = () => {
   const handleCreateClientLead = async (e) => {
     e.preventDefault();
 
-    const { leadName, mobileNo, requirement, fromDate, toDate, source, stage, email,  } = formData;
+    const { leadName, mobileNo, requirement, eventDate, followupDate, source, stage, email,  } = formData;
 
     const today = new Date().toISOString().split('T')[0];
-    if (new Date(toDate) < new Date(today)) {
+    if (new Date(followupDate) < new Date(today)) {
       toast.error('To Date cannot be in the past.');
       return;
     }
@@ -44,8 +45,8 @@ const ClientLeads = () => {
         leadName,
         mobileNo,
         requirement,
-        fromDate,
-        toDate,
+        eventDate,
+        followupDate,
         source,
         stage,
         email,
@@ -54,7 +55,7 @@ const ClientLeads = () => {
 
       toast.success('Client lead created successfully.');
       setTimeout(() => {
-        navigate('/show');
+        navigate('/usersidebar/leads');
       }, 1500);
     } catch (error) {
       toast.error('Failed to create client lead. Please try again.');
@@ -66,143 +67,137 @@ const ClientLeads = () => {
   };
 
   return (
-    <div className={`dashboard-container1 ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      <CSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-      <div className="dashboard-content1">
-        <ClientHeader onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
-        <h2>Add Lead</h2>
-        <p className="subheading">Fill out the form below to add a new lead</p>
-        <form onSubmit={handleCreateClientLead}>
-        <form className="add-user-form">
-        <div className="form-left">
-          <div className="form-group">
-            <label htmlFor="name">Lead Name</label>
-            <input 
-                type="text" 
-                name="leadName" 
-                value={formData.leadName} 
-                onChange={handleChange} 
-                placeholder="Enter Lead Name" 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="contactno">Contact No.</label>
-            <input 
-                type="text" 
-                name="mobileNo" 
-                value={formData.mobileNo} 
-                onChange={handleChange} 
-                placeholder="Enter Mobile No" 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="date">Event Date</label>
-            <input 
-                type="date" 
-                name="fromDate" 
-                value={formData.fromDate} 
-                onChange={handleChange} 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="source">Source</label>
-            
-            <select className='opt'
-                name="source" 
-                value={formData.source} 
-                onChange={handleChange} 
-                required
-              >
-                <option value="google">Google</option>
-                <option value="walk in">Walk In</option>
-                <option value="insta">Instagram</option>
-                <option value="facebook">Facebook</option>
-              </select>
+    <div className={`add-lead-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      <UserSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
+        <div className="add-lead-content">
+          <UserHeader onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
+          <h2 style={{ marginLeft: '20px', marginTop: '70px' }}>
+            Add lead
+          </h2>
+          <p className="subheading">Fill out the form below to add a new lead</p>
+            <form onSubmit={handleCreateClientLead} >
+            <form className="add-user-form">
+              <div className="form-left">
+                <div className='lead'>
+                <div className="lead-details">
+                  <label htmlFor="name">Lead Name</label>
+                    <input 
+                        type="text" 
+                        name="leadName" 
+                        value={formData.leadName} 
+                        onChange={handleChange} 
+                        placeholder="Enter Lead Name" 
+                        required 
+                    />
+                  </div>
+                  <div className="lead-details">
+                    <label htmlFor="contactno">Contact No.</label>
+                      <input 
+                          type="text" 
+                          name="mobileNo" 
+                          value={formData.mobileNo} 
+                          onChange={handleChange} 
+                          placeholder="Enter Mobile No" 
+                          required 
+                      />
+                  </div>
+                  <div className="lead-details">
+                    <label htmlFor="email">Email</label>
+                      <input 
+                          type="text" 
+                          name="email" 
+                          value={formData.email} 
+                          onChange={handleChange} 
+                          placeholder="Enter Email-ID" 
+                          required 
+                      />
+                  </div>
+                  </div>
+
+                  <div className="sub-left">
+                    <label htmlFor="role">Next Follow-up Date</label>
+                      <input 
+                          type="datetime-local" 
+                          name="followupDate" 
+                          value={formData.followupDate} 
+                          onChange={handleChange} 
+                          required 
+                      />
+                  </div>
               
-          </div>
-          <div className="form-group">
-            <label htmlFor="comment">Comment</label>
-              <textarea
-                name="comment"
-                value={formData.comment}
-                onChange={handleChange}
-                placeholder="Enter any comments here"
-              />
-          </div>
-          {/* <div className="form-group">
-            <label htmlFor="budget">Budget</label>
-            <input 
-                type="text" 
-                name="budget" 
-                value={formData.budget} 
-                onChange={handleChange} 
-                placeholder="Enter Budget" 
-                required 
-              />
-          </div> */}
-          
-        </div>
 
-        <div className="form-right">
-          <div className="form-group">
-            <label htmlFor="require">Requirement</label>
-            <input 
-                type="text" 
-                name="requirement" 
-                value={formData.requirement} 
-                onChange={handleChange} 
-                placeholder="Enter Requirement" 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input 
-                type="text" 
-                name="email" 
-                value={formData.email} 
-                onChange={handleChange} 
-                placeholder="Enter Email-ID" 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="role">Next Follow-up Date</label>
-            <input 
-                type="date" 
-                name="toDate" 
-                value={formData.toDate} 
-                onChange={handleChange} 
-                required 
-              />
-          </div>
-          <div className="form-group">
-            <label htmlFor="stage">Status</label>
-            <select className='opt'
-                name="stage" 
-                value={formData.stage} 
-                onChange={handleChange} 
-                required
-              >
-                <option value="fresh lead">Fresh Lead</option>
-                <option value="requirement fulfilled">Requirement Fulfilled</option>
-                <option value="not interested">Not Interested</option>
-                <option value="interested">Interested</option>
-              </select>
-          </div>
-        </div>
-      </form>
-
-      <div className="button-group">
-        <button type="button" className="btn cancel">Cancel</button>
+                  <div className="sub-right">
+                    <label htmlFor="stage">Status</label>
+                      <select className='opt'
+                          name="stage" 
+                          value={formData.stage} 
+                          onChange={handleChange} 
+                          required
+                        >
+                        <option value="fresh lead">Fresh Lead</option>
+                        <option value="requirement fulfilled">Requirement Fulfilled</option>
+                        <option value="not interested">Not Interested</option>
+                        <option value="interested">Interested</option>
+                      </select>
+                  </div>
+              </div>
         
-        <button type="submit" className="btn add-employee">Add Lead</button>
-      </div>
-        </form>
-        <ToastContainer />
+              <div className="form-right">
+                <div className="requirement-field">
+                  <label htmlFor="require">Requirement</label>
+                  <input 
+                      type="text" 
+                      name="requirement" 
+                      value={formData.requirement} 
+                      onChange={handleChange} 
+                      placeholder="Enter Requirement" 
+                      required 
+                    />
+                </div>
+                <div className="source-field">
+                  <label htmlFor="source">Source</label>
+                  
+                  <select className='opt'
+                      name="source" 
+                      value={formData.source} 
+                      onChange={handleChange} 
+                      required
+                    >
+                      <option value="google">Google</option>
+                      <option value="walk in">Walk In</option>
+                      <option value="insta">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                    </select>
+                    
+                </div>
+                <div className="eventdate-field">
+                  <label htmlFor="date">Event Date</label>
+                  <input 
+                      type="date" 
+                      name="eventDate" 
+                      value={formData.eventDate} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                </div>
+                <div className="comment-field">
+                  <label htmlFor="comment">Comment</label>
+                    <textarea
+                      name="comment"
+                      value={formData.comment}
+                      onChange={handleChange}
+                      placeholder="Enter any comments here"
+                    />
+                </div>
+              </div>
+            </form>
+            <div className="button-group">
+              <button onClick={() => navigate('/usersidebar/leads')} type="button" className="btn cancel">Cancel</button>
+              
+              <button type="submit" className="btn add-clead">Add Lead</button>
+            </div>
+            </form>
+            <ToastContainer />
       </div>
     </div>
   );

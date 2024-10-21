@@ -6,6 +6,8 @@ import { db } from '../../firebaseConfig'; // Assuming you have Firebase initial
 import { useUser } from '../Auth/UserContext'; // Assuming you're using a UserContext for branchCode
 import '../Product/Addproduct.css';
 import { FaPlus } from 'react-icons/fa';
+import UserHeader from '../UserDashboard/UserHeader';
+import UserSidebar from '../UserDashboard/UserSidebar';
 
 function EditProduct() {
   const { productCode } = useParams(); // Get productCode from URL
@@ -22,8 +24,8 @@ function EditProduct() {
   const [imagePreview, setImagePreview] = useState(null);
   const [branchCode, setBranchCode] = useState('');
   const [customFieldValues, setCustomFieldValues] = useState({});
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedGender, setSelectedGender] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const { userData } = useUser();
   const navigate = useNavigate();
   const imageInputRef = useRef();
@@ -48,8 +50,7 @@ function EditProduct() {
         setMinimumRentalPeriod(productData.minimumRentalPeriod);
         setExtraRent(productData.extraRent);
         setPriceType(productData.priceType);
-        setSelectedSize(productData.size);
-        setSelectedGender(productData.gender);
+       
         // Set image previews if available
         if (productData.imageUrls) {
           setImages(productData.imageUrls);
@@ -84,10 +85,7 @@ function EditProduct() {
     e.preventDefault();
   
     // Check for required fields
-    if (!selectedSize) {
-      alert('Please select a size');
-      return;
-    }
+   
   
     try {
       const storage = getStorage();
@@ -102,6 +100,7 @@ function EditProduct() {
   
       const productData = {
         productName,
+        productCode,
         brandName,
         quantity: parseInt(quantity, 10),
         price: parseFloat(price),
@@ -110,8 +109,7 @@ function EditProduct() {
         imageUrls,
         branchCode,
         customFields: customFieldValues,
-        size: selectedSize || 'N/A',  // Provide default size if not selected
-        gender: selectedGender || 'unisex',
+        
         priceType,
         extraRent: parseInt(extraRent, 10), // Provide default gender if not selected
         minimumRentalPeriod: parseInt(minimumRentalPeriod, 10),
@@ -130,13 +128,21 @@ function EditProduct() {
   };
   
 
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'FS'];
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+
 
   return (
-    <div className="add-product-container">
-      <div className='add-product-name'>
-        <label>Edit Product</label>
-      </div>
+      <div className={`add-product-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      <UserSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
+        <div className="add-product-name">
+          <UserHeader onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
+          <h2 style={{ marginLeft: '20px', marginTop: '70px' }}>
+            Edit Product
+          </h2>
+
       <form className="product-form" onSubmit={handleSubmit}>
         <div className="general-info">
           <div className='left'>
@@ -153,56 +159,7 @@ function EditProduct() {
             <label>Description</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
 
-            <div className="size-gender">
-              <div className="size-options">
-                <label>Size</label>
-                <br />
-                <div>
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      className={selectedSize === size ? 'active' : ''}
-                      onClick={() => setSelectedSize(size)}
-                      type="button"
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-                <div className="sidebar-row">
-                  <label>Gender</label>
-                </div>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="male"
-                      checked={selectedGender === 'male'}
-                      onChange={(e) => setSelectedGender(e.target.value)}
-                    />
-                    Male
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="female"
-                      checked={selectedGender === 'female'}
-                      onChange={(e) => setSelectedGender(e.target.value)}
-                    />
-                    Female
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="unisex"
-                      checked={selectedGender === 'unisex'}
-                      onChange={(e) => setSelectedGender(e.target.value)}
-                    />
-                    Unisex
-                  </label>
-                </div>
-              </div>
-            </div>
+            
           </div>
         </div>
         <div className='right'>
@@ -248,14 +205,14 @@ function EditProduct() {
               <option value="daily">Daily</option>
             </select>
             <label>Minimum Rental Period</label>
-            <input type="number" value={minimumRentalPeriod} onChange={(e) => setMinimumRentalPeriod(e.target.value)} required />
+            <input type="number" value={minimumRentalPeriod} onChange={(e) => setMinimumRentalPeriod(e.target.value)} />
             <label>Add-On Charges</label>
             <div className="extra-rent-group">
               <input
                 type="number"
                 value={extraRent}
                 onChange={(e) => setExtraRent(e.target.value)}
-                required
+                
                 style={{ width: '90%' }}
               />
               </div>
@@ -264,12 +221,13 @@ function EditProduct() {
 
         <div className='right1'>
           <label>Brand Name</label>
-          <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required />
+          <input value={brandName} onChange={(e) => setBrandName(e.target.value)}  />
         </div>
         <div className="submit-button5">
           <button type="submit">Update Product</button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

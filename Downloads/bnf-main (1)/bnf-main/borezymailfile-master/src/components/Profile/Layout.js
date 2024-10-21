@@ -1,12 +1,22 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { useUser } from '../Auth/UserContext'; // Import the context
 import logo from '../../assets/profile-logo.png';
 import './Profile.css';
 
+const NavigationItem = ({ to, label }) => (
+  <li>
+    <NavLink to={to}>{label}</NavLink>
+  </li>
+);
+
 const Layout = () => {
   const { userData } = useUser(); // Access userData from the context
+
+  const isBranchManager = userData.role === 'Branch Manager';
+  const isSuperAdmin = userData.role === 'Super Admin';
+  const issubusers = userData.role === 'Subuser ';
+
 
   return (
     <div className="dashboard-container1">
@@ -16,27 +26,35 @@ const Layout = () => {
         </div>
         <div className="profile">
           <h3>{userData.name}</h3> {/* Display the user name */}
-          <p>{userData.role} <br /> Tukaram Kapse Pvt. Ltd.</p>
+          <p>{userData.branchName}</p> {/* Display the branch name */}
         </div>
       </header>
+      
       <div className='profile1'>
-      <nav>
-  <ul>
-    {userData.role === 'Branch Manager' ? (
-      <li><NavLink to="/overview">Overview</NavLink></li>
-    ) : (
-      <li><NavLink to="/profile">Overview</NavLink></li>
-    )}
-    {userData.role === 'Super Admin' ? (
-      <li><NavLink to="/superadmin">Super Admin</NavLink></li>
-    ) : (
-      <li><NavLink to="/usersidebar/users">Create Users</NavLink></li>
-    )}
-    <li><NavLink to="/transaction">Transaction</NavLink></li>
-    <li><NavLink to="/settings">Settings</NavLink></li>
-  </ul>
-</nav>
+        <nav>
+          <ul>
+            <NavigationItem to={isBranchManager ? "/overview" : "/profile"} label="Overview" />
+
+            <NavigationItem to={isSuperAdmin ? "/superadmin" : "/usersidebar/users"} label={isSuperAdmin ? "Super Admin" : "Create Users"} />
+
+            <NavigationItem to="/transaction" label="Transaction" />
+
+            {isBranchManager ? (
+              <NavigationItem to="/change-password" label="Change Password" /> // Link to Change Password
+            ) : (
+              <NavigationItem to="/change-password" label="Change Password" /> // Link to Settings
+      
+            )}
+            {issubusers ? (
+              <NavigationItem to="/change-password" label="Change Password" /> // Link to Change Password
+            ) : (
+              <NavigationItem to="/change-password" label="Change Password" /> // Link to Settings
+      
+            )}
+          </ul>
+        </nav>
       </div>
+      
       <main>
         <Outlet /> {/* Render the nested route content here */}
       </main>
@@ -45,60 +63,3 @@ const Layout = () => {
 };
 
 export default Layout;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

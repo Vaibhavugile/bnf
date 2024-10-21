@@ -38,6 +38,8 @@ import ClientDashboard from './components/UserDashboard/Availability/ClientDetai
 import Dashboard from './components/UserDashboard/Dashboard/Dashboard';
 import SingleComponent from './components/Profile/Profile';
 import Overview from './components/Profile/overview';
+import EditCLead from './components/UserDashboard/Clienleads/Editlead';
+import ForgotPassword from './components/Auth/ForgotPassword';
 const App = () => (
   <UserProvider>
   <Router>
@@ -77,6 +79,9 @@ const App = () => (
       <Route path="/usersidebar/billing" element={<BookingDashboard/>}/>
       <Route path="/usersidebar/clients" element={<BookingDashboard/>}/>
       <Route path="/usersidebar/dashboard" element={<Dashboard/>}/>
+      <Route path='/editclientlead/:id' element={<EditCLead/>}/>
+      <Route path="/forgot-password" element={<ForgotPassword/>}/>
+
       
      
       <Route path="/" element={<Layout />}>

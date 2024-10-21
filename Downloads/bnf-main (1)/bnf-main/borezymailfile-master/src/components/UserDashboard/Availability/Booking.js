@@ -888,7 +888,7 @@ useEffect(() => {
      <div className='issidebar'>
      <UserSidebar isOpen={isSidebarOpen} />
      <button onClick={toggleAvailabilityForm} className='availability-toogle-button'>
-          {isAvailabilityFormVisible ? 'Hide Availability Form' : 'Show Availability Form'}
+          {isAvailabilityFormVisible ? '' : ''}
       </button>
       
       {isAvailabilityFormVisible  && (

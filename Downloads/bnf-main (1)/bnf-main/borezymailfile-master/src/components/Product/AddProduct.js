@@ -7,6 +7,10 @@ import { useUser } from '../Auth/UserContext'; // Assuming you're using a UserCo
 import '../Product/Addproduct.css';
 import { FaPlus} from 'react-icons/fa';
 
+import UserHeader from '../UserDashboard/UserHeader';
+import UserSidebar from '../UserDashboard/UserSidebar';
+
+
 
 function AddProduct() {
   const [productName, setProductName] = useState('');
@@ -34,8 +38,8 @@ function AddProduct() {
 
   // const [gender,setGender]=useState('')
   // States for Size-Gender selection
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedGender, setSelectedGender] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   
   const { userData } = useUser(); // Get user data from context
   const navigate = useNavigate(); // Initialize navigate
@@ -89,13 +93,7 @@ function AddProduct() {
     setCustomFields(updatedCustomFields);
   };
 
-  const handleSizeClick = (size) => {
-    setSelectedSize(size); // Update selected size
-  };
-
-  const handleGenderClick = (e) => {
-    setSelectedGender(e.target.value); // Update selected gender
-  };
+ 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,8 +120,7 @@ function AddProduct() {
         imageUrls,
         branchCode,
         customFields: customFieldValues,
-        size: selectedSize, // Include selected size in product data
-        gender: selectedGender, // Include selected gender in product data
+        // Include selected gender in product data
         priceType,
         extraRent: parseInt(extraRent, 10),
         minimumRentalPeriod:parseInt(minimumRentalPeriod,10),
@@ -134,7 +131,7 @@ function AddProduct() {
       await setDoc(productRef, productData);
 
       // Add an empty bookings sub-collection
-      await addDoc(doc(collection(productRef, 'bookings'), bookingId), {}); // Empty document with bookingId as ID
+      await addDoc(collection(productRef, 'bookings'), {}); // Empty document with bookingId as ID
 
       alert('Product and bookings added successfully!');
       navigate('/productdashboard');
@@ -149,23 +146,28 @@ function AddProduct() {
       setDescription('');
       setImages([]);
       setCustomFieldValues({});
-      setSelectedSize(''); // Reset size
-      setSelectedGender(''); // Reset gender
+      // Reset gender
       setPriceType('')
 
     } catch (error) {
-      alert('Productadded successfully!');
-      navigate('/productdashboard');
+      console.error("Error adding product: ", error);
+      alert('Error adding product. Please try again.');
     }
   };
 
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'FS'];
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
-    <div className="add-product-container">
-      <div className='add-product-name'>
-        <label>Add new Product</label>
-      </div>
+      <div className={`add-product-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      <UserSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
+        <div className="add-product-name">
+          <UserHeader onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
+          <h2 style={{ marginLeft: '20px', marginTop: '70px' }}>
+            Add new product
+          </h2>
+
       <form className="product-form">
         <div className="general-info">
         <div className='left'>
@@ -183,61 +185,7 @@ function AddProduct() {
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
 
           {/* Size and Gender inputs */}
-          <div className="size-gender">
-            {/* Size options */}
-            <div className="size-options">
-          <label>Size</label> <br/>
-          <div>
-            {sizes.map((size) => (
-              <button
-                key={size}
-                className={selectedSize === size ? 'active' : ''}
-                onClick={() => handleSizeClick(size)}
-                type="button"
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-          <div className="sidebar-row">
-          <label>Gender</label> 
-          </div>
-            <div className="radio-group">
-              
-              <label>
-                <input
-                  type="radio"
-                  value="male"
-                  checked={selectedGender === 'male'}
-                  onChange={(e) => setSelectedGender(e.target.value)}
-                />
-                Male
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="female"
-                  checked={selectedGender === 'female'}
-                  onChange={(e) => setSelectedGender(e.target.value)}
-                />
-                Female
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="unisex"
-                  checked={selectedGender === 'unisex'}
-                  onChange={(e) => setSelectedGender(e.target.value)}
-                />
-                Unisex
-              </label>
-            </div>
           
-
-        </div>
-
-       
-          </div>
           </div>
         </div>
         <div className='right'>
@@ -282,6 +230,7 @@ function AddProduct() {
             <input type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} required />
             <label>Rent Calculated By</label>
             <select value={priceType} onChange={(e) => setPriceType(e.target.value)}>
+              <option value= "">Select Price Type</option>
               <option value="hourly">Hourly</option>
               <option value="daily">Daily</option>
             </select>
@@ -321,11 +270,13 @@ function AddProduct() {
         <div className='right1'>
           <label>Brand Name</label>
           <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required />
-          </div>
-        <div className="submit-button5" >
+          <div className="submit-button5" >
+          <button onClick={() => navigate('/productdashboard')} type="button" className='can'>Cancel</button>
           <button onClick={handleSubmit}>Add Product</button>
         </div>
+          </div>
       </form>
+    </div>
     </div>
   );
 }
